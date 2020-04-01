@@ -104,8 +104,8 @@ module.exports = {
     "startYear": "2020",
     // 评论区
     valineConfig: {
-          appId: '...',// your appId
-          appKey: '...', // your appKey
+          appId: 'y7MKrA8OauBNNXFuhDBUfHOa-gzGzoHsz',// your appId
+          appKey: 'KenJGyybgIgnmGNKdgAja7z2', // your appKey
         }
   },
   "markdown": {
