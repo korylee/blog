@@ -109,8 +109,16 @@ module.exports = {
       visitor: true
     }
   },
+  
   "markdown": {
     "lineNumbers": true
+  },
+  // 站点多语言配置
+  locales: {
+    '/': {
+      lang: 'zh-CN'
+    }
   }
+
 
 }
