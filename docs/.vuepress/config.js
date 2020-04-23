@@ -51,11 +51,6 @@ module.exports = {
           //   "icon": "reco-jianshu"
           // },
           // {
-          //   "text": "CSDN",
-          //   "link": "https://blog.csdn.net/recoluan",
-          //   "icon": "reco-csdn"
-          // },
-          // {
           //   "text": "博客圆",
           //   "link": "https://www.cnblogs.com/luanhewei/",
           //   "icon": "reco-bokeyuan"
@@ -113,6 +108,9 @@ module.exports = {
   "markdown": {
     "lineNumbers": true
   },
+  plugins: [
+    ['vuepress-plugin-smooth-scroll']
+  ],
   // 站点多语言配置
   locales: {
     '/': {

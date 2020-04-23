@@ -1,11 +1,15 @@
 {
   "name": "my-blog",
   "version": "1.0.0",
-  "author": "kory-lee",
+  "author": "Kory-lee",
+  "description": "Write once,debug everywhere",
+  "main": "index.js",
+  "repository": "https://github.com/Kory-lee/myBlog.git",
+  "license": "MIT",
   "scripts": {
     "dev": "vuepress dev docs",
     "build": "vuepress build docs",
-    "upgrade": "yarn upgrade-interactive --latest",
+    "upgrade": "upgrade-interactive --latest",
     "genlog": "conventional-changelog -p angular -i .github/CHANGELOG.md -s"
   },
   "devDependencies": {
@@ -13,12 +17,9 @@
     "conventional-changelog": "^3.1.18",
     "cz-conventional-changelog": "^3.1.0",
     "vuepress": "1.4.1",
+    "vuepress-plugin-smooth-scroll": "0.0.9",
     "vuepress-theme-reco": "1.4.5"
   },
-  "description": "Write once,debug everywhere",
-  "main": "index.js",
-  "repository": "https://github.com/Kory-lee/myBlog.git",
-  "license": "MIT",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"

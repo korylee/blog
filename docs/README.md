@@ -1,14 +1,17 @@
 ---
 home: true
-# heroImage: /hero.png
-# heroImageStyle: {
-#   maxWidth: '600px',
-#   width: '100%',
-#   display: block,
-#   margin: '9rem auto 2rem',
-#   background: '#fff',
-#   borderRadius: '1rem',
-# }
+heroImage: /hero.png
+heroText: null
+heroImageStyle: {
+  maxWidth: '200px',
+  width: '100%',
+  display: block,
+  margin: '3rem auto 1.5rem',
+  background: '#fff',
+  borderRadius: '50%',
+  boxShadow: '0 5px 18px rgba(0,0,0,0.2)'
+}
+bgImage: '/banner_2.jpg'
 bgImageStyle: {
   height: '450px'
 }
