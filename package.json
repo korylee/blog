@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vuepress dev docs",
     "build": "vuepress build docs",
-    "upgrade": "upgrade-interactive --latest",
+    "upgrade": "yarn upgrade-interactive --latest",
     "genlog": "conventional-changelog -p angular -i .github/CHANGELOG.md -s"
   },
   "devDependencies": {
