@@ -1,5 +1,5 @@
 module.exports = {
-  "title": "李二狗的技术博客",
+  "title": "二狗同学的灌水博客",
   "description": "Write once,debug everywhere",
   "dest": "public",
   "head": [
@@ -46,11 +46,6 @@ module.exports = {
             "icon": "reco-github"
           },
           // {
-          //   "text": "简书",
-          //   "link": "https://www.jianshu.com/u/cd674a19515e",
-          //   "icon": "reco-jianshu"
-          // },
-          // {
           //   "text": "博客圆",
           //   "link": "https://www.cnblogs.com/luanhewei/",
           //   "icon": "reco-bokeyuan"
@@ -93,7 +88,7 @@ module.exports = {
     "searchMaxSuggestions": 10,
     "sidebar": "auto",
     "lastUpdated": "Last Updated",
-    "author": "kory-lee",
+    "author": "kory",
     "authorAvatar": "/avatar.png",
     "record": "kory-lee",
     "startYear": "2020",
@@ -108,9 +103,9 @@ module.exports = {
   "markdown": {
     "lineNumbers": true
   },
-  plugins: [
-    ['vuepress-plugin-smooth-scroll']
-  ],
+  // plugins: [
+  //   ['vuepress-plugin-smooth-scroll']
+  // ],
   // 站点多语言配置
   locales: {
     '/': {

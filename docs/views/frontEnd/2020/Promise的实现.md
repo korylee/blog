@@ -6,7 +6,7 @@ tags:
   - 学习笔记
 categories:
   - frontEnd
-publish: false
+publish: falsex
 ---
 
 ## promise
@@ -96,7 +96,7 @@ class Promise {
     if (reason === this) throw new TypeError('Chaining cycle detected for promise');
     if (reason instanceof Object) {
       const then = reason.then;
-      if (typeof reason === 'function') {
+      if (typeof then === 'function') {
         return then.call(reason, this.resolve.bind(this), this.reject.bind(this));
       }
     }
@@ -104,7 +104,8 @@ class Promise {
     this.value = reason;
     this.callback.forEach((callback) => callback.onRejected.call(undefined, reason));
   }
-  // 静态方法
+  // 静态方法在程序开始时生成内存，实例方法在程序运行过程中生成内存
+  // 所以静态方法可以直接调用，实例方法要先生成示例，通过实例调用方法，静态速度很快，但多了会产生内存
   static resolve(value) {
     return new Promise((resolve, reject) => {
       if (value instanceof Promise) {
@@ -128,15 +129,44 @@ class Promise {
       const results = [];
       promiseArr.forEach((promise) => {
         promise.then((value) => {
-          result.push(value);
+          results.push(value);
           if (results.length === promiseArr.length) {
-            resolve(result);
+            resolve(results);
           }
         }, reject);
       });
     });
   }
+  static race(promiseArr) {
+    return Promise((resolve, reject) => promiseArr.forEach((promise) => promise.then(resolve, reject)));
+  }
 }
+```
+
+### 精简版
+
+```js
+function Promise(executor) {
+  var self = this;
+  var callbacks = [];
+  executor(resolve.bind(self));
+  function resolve(value) {
+    setTimeout(() => {
+      self.data = value;
+      callbacks.forEach((cb) => cb(value));
+    });
+  }
+}
+Promise.prototype.then() = function(onResolved, onRejected) {
+  var self = this;
+  return new Promise((resolve) => {
+    self.callbacks.push(function() {
+      var result = typeof onResolved === 'function' ? onResolved(self.data) : self.data;
+      if (result instanceof Promise) resolve.then(result);
+      else resolve(result);
+    });
+  });
+};
 ```
 
 ## async
