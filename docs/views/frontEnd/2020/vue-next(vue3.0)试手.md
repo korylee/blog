@@ -34,7 +34,7 @@ publish: false
 
 > TS 还在学...
 
-## setup()函数
+## `setup()`函数
 
 `setup()`函数会在`beforeCreate`之后、`created`之前
 
@@ -133,7 +133,7 @@ setup(props,context){
 template: `<button>名字是: {{name}}</button>`
 ```
 
-## ref()函数
+## `ref()`函数
 
 `ref()`函数用来根据给定的值创建一个响应式的数据对象,ref 函数调用的返回值是一个对象,这个对象只包含一个`.value`属性
 
@@ -286,7 +286,7 @@ stop();
 - watch 被强制 stop 了
 
 ```html
-<input type="text" v-model="keywords"/>
+<input type="text" v-model="keywords" />
 ```
 
 ```js
@@ -543,4 +543,26 @@ TemplateRefTwo.vue
 
 ```js
 import { createComponent } from 'vue';
+export default createComponent({
+  props: {
+    foo: string,
+  },
+  setup() {
+    props.foo; // <--Type: string
+  },
+});
 ```
+
+## 代码复用
+
+### vue2.x
+
+```vue
+<template>
+  <div class="vue2">
+    <input type="text" @ch>
+  </div>
+</template>
+```
+
+### vue 3.0

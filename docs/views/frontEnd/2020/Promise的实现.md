@@ -6,7 +6,7 @@ tags:
   - 学习笔记
 categories:
   - frontEnd
-publish: falsex
+publish: false
 ---
 
 ## promise
