@@ -17,6 +17,7 @@
     "conventional-changelog": "^3.1.18",
     "cz-conventional-changelog": "^3.1.0",
     "vuepress": "1.4.1",
+    "vuepress-plugin-flowchart": "^1.4.3",
     "vuepress-plugin-smooth-scroll": "0.0.9",
     "vuepress-theme-reco": "1.4.5"
   },

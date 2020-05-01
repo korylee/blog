@@ -88,9 +88,8 @@ module.exports = {
   "markdown": {
     "lineNumbers": true
   },
-  // plugins: [
-  //   ['vuepress-plugin-smooth-scroll']
-  // ],
+  plugins: [['flowchart'] // ['vuepress-plugin-smooth-scroll']
+  ],
   // 站点多语言配置
   locales: {
     '/': {

@@ -2,8 +2,7 @@
 title: Promise、async的实现
 date: 2020-04-22
 tags:
-  - Js
-  - 学习笔记
+  - JavaScript
 categories:
   - frontEnd
 publish: false
@@ -19,6 +18,7 @@ class Promise {
     this.value = null;
     this.callback = [];
     try {
+      // 如果将方法绑定this，实例化的时候就能显式的看到有哪些属性
       executor(this.resolve.bind(this), this.reject.bind(this));
     } catch (error) {
       this.reject(error);
@@ -170,6 +170,8 @@ Promise.prototype.then() = function(onResolved, onRejected) {
 ```
 
 ## async
+
+await 是让出线程的标志。await 后面的表达式会先执行一遍，将 await 后面的代码加入到 microtask 中，然后就会跳出整个 async 函数来执行后面的代码
 
 ```js
 function asyncToGenerator(generatorFunc) {

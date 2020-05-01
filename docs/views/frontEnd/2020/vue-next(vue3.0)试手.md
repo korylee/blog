@@ -24,12 +24,6 @@ publish: false
 - 命名空间冲突。由不同开发者开发的 mixin 无法保证不会正好用到一样的属性或是方法名。HOC 在注入的 props 中也存在类似问题。
 - 性能。HOC 和 Renderless Components 都需要额外的组件实例嵌套来封装逻辑，导致无谓的性能开销。
 
-从以上 useMouse 例子中可以看到：
-
-- 暴露给模版的属性来源清晰（从函数返回）；
-- 返回值可以被任意重命名，所以不存在命名空间冲突；
-- 没有创建额外的组件实例所带来的性能损耗。
-
 ### 类型推导
 
 > TS 还在学...
@@ -250,7 +244,7 @@ const count = ref(0)
 watch(count,(value,oldValue)=> console.log(`from ${oldValue}` to ${value}))
 ```
 
-#### 兼容多个数据源
+#### 监视多个数据源
 
 ```js
 const state = reactive({ name: 'ming', age: 13 });
@@ -299,7 +293,7 @@ watch(
   keywords,
   (keywords, preKeywords, onCleanup) => {
     const timeId = asyncPrint(keywords);
-    // keywords发生了变化,或时watcher即将被停止
+    // keywords发生了变化,或是watcher即将被停止
     // 取消还未完成的异步操作
     // 如果watch被重复执行了,则会先清除上次未完成的异步任务
     onCleanup(() => clearTimeout(timeId));
@@ -560,9 +554,116 @@ export default createComponent({
 ```vue
 <template>
   <div class="vue2">
-    <input type="text" @ch>
+    <el-input type="text" @change="onSearch" v-model="searchValue" />
+    <div v-for="name in names" v-show="name.isFixSearch" :key="name.id">
+      {{ name.value }}
+    </div>
   </div>
 </template>
+<script>
+  // vue2.vue
+  import searchMixin from './searchMixin';
+  export default {
+    mixins: [searchMixin],
+    data() {
+      return {
+        names: [
+          { id: 1, isFixSearch: true, value: 'name1' },
+          { id: 2, isFixSearch: true, value: 'name2' },
+          { id: 3, isFixSearch: true, value: 'name3' },
+          { id: 4, isFixSearch: true, value: 'name4' },
+          { id: 5, isFixSearch: true, value: 'name5' },
+        ],
+      };
+    },
+  };
+</script>
+<style lang="less">
+  .vue2 {
+  }
+</style>
 ```
 
+```js
+// searchMixin.js
+export default {
+  data() {
+    return {
+      searchValue: '',
+    };
+  },
+  /**
+   * 命名固定，外面另外命名不容易
+   * 应该可以通过 searchMixin.methods.onNewNameSearch =  searchMixin.methods.onSearch
+   * 来进行重命名。但是data里面的应该就重命名不了了。
+   */
+  methods: {
+    onSearch() {
+      this.names.forEach((name) => (name.isFixSearch = name.value.includes(this.searchValue)));
+    },
+  },
+};
+```
+
+缺点：
+
+1. 命名容易冲突，容易覆盖引入`mixin`的页面属性
+2. 问题追踪难度大，这个缺点还是由于名称冲突导致的。mixin 多的话容易出现不容易定位的问题。当然也可以通过 namespace 来解决。
+
 ### vue 3.0
+
+```vue
+<template>
+  <div class="vue3">
+    <el-input type="text" @change="onSearch" v-model="searchValue" />
+    <div v-for="name in names" v-show="name.isFixSearch" :key="name.id">
+      {{ name.value }}
+    </div>
+  </div>
+</template>
+<script>
+  // vue3
+  import useSearch from './useSearch';
+  export default {
+    setup() {
+      const originNames = [
+        { id: 1, isFixSearch: true, value: 'name1' },
+        { id: 2, isFixSearch: true, value: 'name2' },
+        { id: 3, isFixSearch: true, value: 'name3' },
+        { id: 4, isFixSearch: true, value: 'name4' },
+        { id: 5, isFixSearch: true, value: 'name5' },
+      ];
+      // 				可以很容易重命名
+      const { onSearch, data: names, searchValue } = useSearch(originNames);
+      return {
+        onSearch,
+        names,
+        searchValue,
+      };
+    },
+  };
+</script>
+<style lang="less">
+  .vue3 {
+  }
+</style>
+```
+
+```js
+// useSearch
+import { reactive, toRefs } from '@vue/composition-api';
+export default function useSearch(names) {
+  const state = reactive({
+    data: names,
+    searchValue: '',
+  });
+  const onSearch = () => {
+    state.data.forEach((name) => (name.isFixSearch = name.value.includes(state.searchValue)));
+  };
+
+  return {
+    ...toRefs(state),
+    onSearch,
+  };
+}
+```
