@@ -13,7 +13,7 @@
     "genlog": "conventional-changelog -p angular -i .github/CHANGELOG.md -s"
   },
   "devDependencies": {
-    "commitizen": "^4.0.4",
+    "commitizen": "^4.0.5",
     "conventional-changelog": "^3.1.18",
     "cz-conventional-changelog": "^3.1.0",
     "vuepress": "1.4.1",

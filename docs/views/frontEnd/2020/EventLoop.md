@@ -2,7 +2,7 @@
 title: 事件轮询模型
 date: 2020-04-03
 tags:
-  - Js
+  - JavaScript
 categories:
   - frontEnd
 ---
