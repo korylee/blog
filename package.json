@@ -26,8 +26,5 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "dependencies": {
-    "global": "^4.4.0",
-    "ts-node": "^8.9.0"
-  }
+  "dependencies": {}
 }
