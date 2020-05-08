@@ -7,6 +7,14 @@ categories:
   - frontEnd
 # publish: false
 ---
+## Example
+:::details Rocket game by vue3.0
+<iframe height="980" style="width: 100%;" scrolling="no" title="Rocket game By vue3.0" src="https://codepen.io/kory-lee/embed/bGVvxNX?height=265&theme-id=dark&default-tab=css,result" frameborder="no" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href='https://codepen.io/kory-lee/pen/bGVvxNX'>Rocket game By vue3.0</a> by Kory-lee
+  (<a href='https://codepen.io/kory-lee'>@kory-lee</a>) on <a href='https://codepen.io'>CodePen</a>.
+</iframe>
+:::
+- [codepen链接](https://codepen.io/kory-lee/pen/bGVvxNX)
 
 ## 设计动机
 
@@ -268,9 +276,7 @@ setTimeout(() => {
 
 ```js
 // 创建监视，并得到停止函数
-const stop = watch(() => {
-  /**/
-});
+const stop = watch(() => {});
 // 调用停止函数，清除对应监视
 stop();
 ```
@@ -305,6 +311,17 @@ watch(
 );
 return { keywords };
 ```
+
+之所以要用传入的注册函数来清理函数，而不是像 React 的`useEffect`那样直接返回一个清理函数,是因为`watch`回调的返回值在异步场景下有特殊作用。我们经常需要在`watch`的回调中用`async function`来执行异步操作
+
+```js
+const data = ref(null);
+watch(getId, async (id) => {
+  data.value = await fetchData(id);
+});
+```
+
+我们知道`async function`隐形的返回一个 Promise，这样的情况下，我们还是无法返回一个需要立即被注册的清理函数的。除此之外。除此之外，回调返回的 Promise 还会被 Vue 用于内部的异步错误处理
 
 ## LifeCycle Hooks 生命周期函数
 
