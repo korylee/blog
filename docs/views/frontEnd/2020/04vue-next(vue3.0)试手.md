@@ -120,7 +120,7 @@ const state = reactive({ name: 'kory' });
 // 2. 在`setup()`函数中调用`reactive`函数,创建响应式数据对象
 const {reactive} = vue
 setup(props,context){
-  const state= reactive({name: 'kory})
+  const state= reactive({name: 'kory'})
   return state
 };
 // 3. 在`template`中访问响应式数据
@@ -198,13 +198,13 @@ import { isRef } from 'vue';
 const unwrapped = isRef(foo) ? foo.value : foo;
 ```
 
-### `toRef()`函数
+### `toRefs()`函数
 
 ```js
 setup(){
   const state = reactive({age:3})
   return{
-    ...toRef(state)
+    ...toRefs(state)
   }
 }
 ```
@@ -237,11 +237,14 @@ console.log(count.value); // 输出 8
 用于监视某些数据项的变化，从而触发某些指定的操作
 
 ```js
-const state = reactive({name:'kory'})
+const state = reactive({ name: 'kory' });
 // 监视`reactive`类型的数据源
-watch(()=>state.name,(value,oldValue)=> console.log(`from ${oldValue}` to ${value}))
-const count = ref(0)
-watch(count,(value,oldValue)=> console.log(`from ${oldValue}` to ${value}))
+watch(
+  () => state.name,
+  (value, oldValue) => console.log(`from ${oldValue} to ${value}`)
+);
+const count = ref(0);
+watch(count, (value, oldValue) => console.log(`from ${oldValue} to ${value}`));
 ```
 
 #### 监视多个数据源
