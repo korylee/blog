@@ -1,5 +1,5 @@
 ---
-title: vue-next(vue3.0)试手
+title: vue-next(vue3.0)上手
 date: 2020-04-28
 tags:
   - vue
@@ -7,14 +7,17 @@ categories:
   - frontEnd
 # publish: false
 ---
+
 ## Example
+
 :::details Rocket game by vue3.0
+
 <iframe height="980" style="width: 100%;" scrolling="no" title="Rocket game By vue3.0" src="https://codepen.io/kory-lee/embed/bGVvxNX?height=265&theme-id=dark&default-tab=css,result" frameborder="no" allowtransparency="true" allowfullscreen="true">
   See the Pen <a href='https://codepen.io/kory-lee/pen/bGVvxNX'>Rocket game By vue3.0</a> by Kory-lee
   (<a href='https://codepen.io/kory-lee'>@kory-lee</a>) on <a href='https://codepen.io'>CodePen</a>.
 </iframe>
 :::
-- [codepen链接](https://codepen.io/kory-lee/pen/bGVvxNX)
+- [在codepen编辑](https://codepen.io/kory-lee/pen/bGVvxNX)
 
 ## 设计动机
 
@@ -240,6 +243,48 @@ plusOne.value = 9;
 console.log(count.value); // 输出 8
 ```
 
+- Typing
+  ```ts
+  function computed<T>(getter: () => T): Readonly<Ref<Readonly<T>>>;
+  function computed<T>(option: { get: () => T; set: (value) => void }): Ref<T>;
+  ```
+  :::tip
+
+```js
+// simplified pseudo code
+function computed(getter) {
+  const ref = {
+    value: null,
+  };
+  watchEffect(() => {
+    ref.value = getter();
+  });
+  return ref;
+}
+```
+
+:::
+
+### readonly
+
+接收一个对象或一个 ref,得到一个只读对象。只读的代理是深度的：任何被访问的嵌套的属性都是只读的
+
+```js
+const original = reactive({ count: 0 });
+const copy = readonly(original);
+
+watchEffect(() => {
+  // works for reactivity tracking
+  console.log(copy.count);
+});
+
+// mutating original will trigger watchers relying on the copy
+original.count++;
+
+// mutating the copy will fail and result in a warning
+copy.count++; // warning!
+```
+
 ### `watch()`函数
 
 用于监视某些数据项的变化，从而触发某些指定的操作
@@ -254,7 +299,10 @@ watch(
 const count = ref(0);
 watch(count, (value, oldValue) => console.log(`from ${oldValue} to ${value}`));
 ```
-
+:::warning 与`watchEffect`相比
+- 惰性的
+- 更详细地说明触发watcher程序重新运行的状态
+- 访问被监视状态地先前值和当前值
 #### 监视多个数据源
 
 ```js
@@ -323,6 +371,99 @@ watch(getId, async (id) => {
 
 我们知道`async function`隐形的返回一个 Promise，这样的情况下，我们还是无法返回一个需要立即被注册的清理函数的。除此之外。除此之外，回调返回的 Promise 还会被 Vue 用于内部的异步错误处理
 
+### watchEffect
+
+立即执行函数,同时动态地跟踪它的依赖项,并在依赖项发生改变时重新运行它
+
+```js
+const count = ref(0);
+const stop = watchEffect(() => console.log(count.value));
+setTimeout(() => count.value++, 100);
+// 清除监视
+stop();
+```
+
+#### 副作用失效
+
+有时 watchEffect 会执行异步副作用，当其无效时需要对其进行清理（即在完成效果之前更改状态）。 效果函数接收一个 onInvalidate 函数，该函数可用于注册无效回调。
+
+```js
+watchEffect((onInvalidate) => {
+  const token = performAsyncOperation(id.value);
+  invalidate(() => {
+    // id改变或stop()时
+    // 使以前挂起的回调失效
+    token.cancel();
+  });
+});
+```
+
+#### Effect flush timing
+
+Vue 的反应系统缓冲无效的效果，并异步刷新它们，以避免在同一“tick”中发生许多 state 突变时不必要的重复调用。 在内部，组件的更新功能也是受监视的效果。 当用户效果排队时，总是在所有组件更新效果后调用它
+
+```vue
+<template>
+  <div>{{ count }}</div>
+</template>
+
+<script>
+  export default {
+    setup() {
+      const count = ref(0);
+
+      watchEffect(() => {
+        console.log(count.value);
+      });
+
+      return {
+        count,
+      };
+    },
+  };
+</script>
+```
+
+- 在初始时同步记录步数
+- 当`count`变化时,将在组件更新后调用回调
+
+:::tip Note
+第一次执行实在挂载组件时执行的,因此,如果希望在观察到的效果中访问 DOM(模板引用),请在挂载的钩子中执行
+```js
+onMounted(() => {
+  watchEffect(() => {
+    // access the DOM or template refs
+  })
+})
+```
+:::
+如果需要同步(`sync`)运行watchEffect或在组件更新之前(`pre`)重新运行, 可以传递带有`flush`选项的附加option对象(默认'post')
+####　Debugging
+- 在reactive或ref作为依赖项被跟踪时，将调用`onTrack`
+- 在依赖项发生变化时触发回调函数，调用onTrigger
+
+```ts
+function watchEffect(
+  effect: (onInvalidate: InvalidateCbRegistrator) => void,
+  options?: WatchEffectOptions
+): StopHandle
+
+interface WatchEffectOptions {
+  flush?: 'pre' | 'post' | 'sync'
+  onTrack?: (event: DebuggerEvent) => void
+  onTrigger?: (event: DebuggerEvent) => void
+}
+
+interface DebuggerEvent {
+  effect: ReactiveEffect
+  target: any
+  type: OperationTypes
+  key: string | symbol | undefined
+}
+
+type InvalidateCbRegistrator = (invalidate: () => void) => void
+type StopHandle = () => void
+```
 ## LifeCycle Hooks 生命周期函数
 
 所有现有的生命周期钩子都有对应的 onXXX 函数(只能在 `setup()`中使用)
@@ -347,7 +488,19 @@ setup(){
 - beforeDestroy -> onBeforeUnmount
 - destroyed -> onUnmounted
 - errorCaptured -> onErrorCaptured
+新增debug hooks
+- onRenderTracked
+- onRenderTriggered
+功能与watch提供地onTrack和onTrigger类似
 
+```js
+export default {
+  onRenderTriggered(e) {
+    debugger
+    // 检查哪个依赖导致组件重新re-render
+  }
+}
+```
 ## provide & inject
 
 provide 和 inject 可以实现嵌套组件之间的数据传递。这两个函数只能在 setup()函数中使用。父组件中使用`provide()`函数向下传递；子级组件使用`inject()`获取上层传递过来的数据
