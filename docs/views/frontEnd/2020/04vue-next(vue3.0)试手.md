@@ -111,11 +111,13 @@ setup(props,context){
 }
 ```
 
-## `reactive()`函数
+## Reactivity APIs
+
+### `reactive()`函数
 
 `reactive()`函数接受一个普通对象,返回一个响应式的函数对象
 
-### 基本语法
+#### 基本语法
 
 等价于`vue2.x`中的`Vue.observable()`函数,`vue 3.0`中提供了`reactive`函数,用来创建响应式的数据对象
 
@@ -123,7 +125,7 @@ setup(props,context){
 const state = reactive({ name: 'kory' });
 ```
 
-### 定义响应式数据供 template 使用
+#### 定义响应式数据供 template 使用
 
 ```js
 // 1. 按需导入 reactive 函数
@@ -138,11 +140,11 @@ setup(props,context){
 template: `<button>名字是: {{name}}</button>`
 ```
 
-## `ref()`函数
+### `ref()`函数
 
 `ref()`函数用来根据给定的值创建一个响应式的数据对象,ref 函数调用的返回值是一个对象,这个对象只包含一个`.value`属性
 
-### 基本语法
+#### 基本语法
 
 ```js
 const age = ref(3);
@@ -150,7 +152,7 @@ age.value++;
 console.log(age.value);
 ```
 
-### 在 template 中访问 ref 创建的响应式数据
+#### 在 template 中访问 ref 创建的响应式数据
 
 ```js
 setup(){
@@ -164,7 +166,7 @@ setup(){
 template: `<p>名字是:{{name}},年龄是: {{age}}</p>`
 ```
 
-### 在 reactive 对象中访问 ref 创建的响应式数据
+#### 在 reactive 对象中访问 ref 创建的响应式数据
 
 把`ref()`创建的响应式对象,挂载在`reactive()`上时,会自动把响应式数据对象展开为原始的值,不需要通过`.value`就可以访问
 
@@ -200,16 +202,109 @@ console.log(c2.value); // 输出 10
 console.log(c1.value); // 输出 0
 ```
 
-### `isRef()`函数
+#### `isRef()`函数
 
 `isRef`用来判断某个值是否为`ref()`创建出来的对象,
 
+#### `unref()`
+
+如果参数是 ref,则返回内部值,否则返回参数本身。
+
 ```js
-import { isRef } from 'vue';
-const unwrapped = isRef(foo) ? foo.value : foo;
+function unref(ref) {
+  return isRef(ref) ? ref.value : ref;
+}
 ```
 
-### `toRefs()`函数
+#### `toRef`
+
+可用将 `reactive` 对象上的属性转换为 `Ref` 对象,并保留其响应式链接
+
+```js
+const state = reactive({
+  foo: 1,
+  bar: 2,
+});
+const fooRef = toRef(state, 'foo');
+fooRef.value++;
+console.log(state.foo); //2
+state.foo++;
+console.log(fooRef.value); //3
+```
+
+`toRef`可以将 props 的 ref 传递给 composition 函数
+
+```js
+setup(props){
+  useSomeFeature(toRef(props,'foo'))
+}
+```
+
+##### 源码
+
+```js
+function toRef(object, key) {
+  return {
+    _isRef: true,
+    get value() {
+      return object[key];
+    },
+    set value(newVal) {
+      object[key] = newVal;
+    },
+  };
+}
+```
+
+#### `toRefs()`函数
+
+将 reactive 对象转换成普通对象, 它的每一个属性都是一个 ref 对象,并指向源对象的相应属性
+
+> **原文:**Convert a reactive object to a plain object, where each property on the resulting object is a ref pointing to the corresponding property in the original object.
+> 怎么翻译都好像差点意思,英语水平太差了,淦
+
+```js
+const state = reactive({ foo: 1, bar: 2 });
+const stateAsRefs = toRefs(state);
+/*
+{
+  foo: Ref<number>,
+  bar: Ref<number>
+}
+*/
+// The ref and the original property is "linked"
+state.foo++;
+console.log(stateAsRefs.foo); // 2
+
+stateAsRefs.foo.value++;
+console.log(state.foo); // **3**
+```
+
+`toRefs`从组合函数返回响应式对象时很有用,以便于组件解构赋值时而不会失去响应性
+
+> toRefs is useful when returning a reactive object from a composition function so that the consuming component can destructure / spread the returned object without losing reactivity:
+
+```js
+function useFeatureX() {
+  const state = reactive({ foo: 1, bar: 2 });
+  // 返回时转换成refs
+  return toRefs(state);
+}
+
+export default {
+  setup() {
+    // 解构赋值不丢失响应性
+    const { foo, bar } = useFeatureX();
+
+    return {
+      foo,
+      bar,
+    };
+  },
+};
+```
+
+或者可以直接这样:
 
 ```js
 setup(){
@@ -217,6 +312,21 @@ setup(){
   return{
     ...toRefs(state)
   }
+}
+```
+
+##### 源码
+
+```js
+function toRefs(object) {
+  if (!isProxy(object)) {
+    console.warn(`toRefs() expects a reactive object but received a plain one.`);
+  }
+  const ret = {};
+  for (const key in object) {
+    ret[key] = toRef(object, key);
+  }
+  return ret;
 }
 ```
 
@@ -248,24 +358,8 @@ console.log(count.value); // 输出 8
   function computed<T>(getter: () => T): Readonly<Ref<Readonly<T>>>;
   function computed<T>(option: { get: () => T; set: (value) => void }): Ref<T>;
   ```
-  :::tip
 
-```js
-// simplified pseudo code
-function computed(getter) {
-  const ref = {
-    value: null,
-  };
-  watchEffect(() => {
-    ref.value = getter();
-  });
-  return ref;
-}
-```
-
-:::
-
-### readonly
+#### readonly
 
 接收一个对象或一个 ref,得到一个只读对象。只读的代理是深度的：任何被访问的嵌套的属性都是只读的
 
@@ -299,10 +393,132 @@ watch(
 const count = ref(0);
 watch(count, (value, oldValue) => console.log(`from ${oldValue} to ${value}`));
 ```
-:::warning 与`watchEffect`相比
-- 惰性的
-- 更详细地说明触发watcher程序重新运行的状态
-- 访问被监视状态地先前值和当前值
+
+```js
+function watch(source, cb, options) {
+  if (!isFunction(cb)) {
+    warn(
+      `\`watch(fn, options?)\` signature has been moved to a separate API. ` +
+        `Use \`watchEffect(fn, options?)\` instead. \`watch\` now only ` +
+        `supports \`watch(source, cb, options?) signature.`
+    );
+  }
+  return doWatch(source, cb, options);
+}
+```
+
+:::details doWatch()源码
+```js
+function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EMPTY_OBJ) {
+  if (!cb) {
+    if (immediate !== undefined) {
+      warn(
+        `watch() "immediate" option is only respected when using the ` + `watch(source, callback, options?) signature.`
+      );
+    }
+    if (deep !== undefined) {
+      warn(`watch() "deep" option is only respected when using the ` + `watch(source, callback, options?) signature.`);
+    }
+  }
+  const instance = currentInstance;
+  let getter;
+  if (isArray(source)) {
+    getter = () => source.map((s) => (isRef(s) ? s.value : callWithErrorHandling(s, instance, 2 /* WATCH_GETTER */)));
+  } else if (isRef(source)) {
+    getter = () => source.value;
+  } else if (cb) {
+    // getter with cb
+    getter = () => callWithErrorHandling(source, instance, 2 /* WATCH_GETTER */);
+  } else {
+    // no cb -> simple effect
+    getter = () => {
+      if (instance && instance.isUnmounted) {
+        return;
+      }
+      if (cleanup) {
+        cleanup();
+      }
+      return callWithErrorHandling(source, instance, 3 /* WATCH_CALLBACK */, [onInvalidate]);
+    };
+  }
+  if (cb && deep) {
+    const baseGetter = getter;
+    getter = () => traverse(baseGetter());
+  }
+  let cleanup;
+  const onInvalidate = (fn) => {
+    cleanup = runner.options.onStop = () => {
+      callWithErrorHandling(fn, instance, 4 /* WATCH_CLEANUP */);
+    };
+  };
+  let oldValue = isArray(source) ? [] : INITIAL_WATCHER_VALUE;
+  const applyCb = cb
+    ? () => {
+        if (instance && instance.isUnmounted) {
+          return;
+        }
+        const newValue = runner();
+        if (deep || hasChanged(newValue, oldValue)) {
+          // cleanup before running cb again
+          if (cleanup) {
+            cleanup();
+          }
+          callWithAsyncErrorHandling(cb, instance, 3 /* WATCH_CALLBACK */, [
+            newValue,
+            // pass undefined as the old value when it's changed for the first time
+            oldValue === INITIAL_WATCHER_VALUE ? undefined : oldValue,
+            onInvalidate,
+          ]);
+          oldValue = newValue;
+        }
+      }
+    : void 0;
+  let scheduler;
+  if (flush === 'sync') {
+    scheduler = invoke;
+  } else if (flush === 'pre') {
+    scheduler = (job) => {
+      if (!instance || instance.isMounted) {
+        queueJob(job);
+      } else {
+        // with 'pre' option, the first call must happen before
+        // the component is mounted so it is called synchronously.
+        job();
+      }
+    };
+  } else {
+    scheduler = (job) => queuePostRenderEffect(job, instance && instance.suspense);
+  }
+  const runner = effect(getter, {
+    lazy: true,
+    // so it runs before component update effects in pre flush mode
+    computed: true,
+    onTrack,
+    onTrigger,
+    scheduler: applyCb ? () => scheduler(applyCb) : scheduler,
+  });
+  recordInstanceBoundEffect(runner);
+  // initial run
+  if (applyCb) {
+    if (immediate) {
+      applyCb();
+    } else {
+      oldValue = runner();
+    }
+  } else {
+    runner();
+  }
+  return () => {
+    stop(runner);
+    if (instance) {
+      remove(instance.effects, runner);
+    }
+  };
+}
+```
+
+:::
+
 #### 监视多个数据源
 
 ```js
@@ -371,17 +587,43 @@ watch(getId, async (id) => {
 
 我们知道`async function`隐形的返回一个 Promise，这样的情况下，我们还是无法返回一个需要立即被注册的清理函数的。除此之外。除此之外，回调返回的 Promise 还会被 Vue 用于内部的异步错误处理
 
+#### Debugging
+
+- 在 `reactive` 或 `ref` 作为依赖项被跟踪时，将调用`onTrack`
+- 在依赖项发生变化时触发回调函数，调用 `onTrigger`
+
+:::warning
+`onTrack`和`onTrigger`仅仅在开发模式中运行
+:::
+
+```js
+watchEffect(() => {}, {
+  onTrigger(e) {
+    debugger;
+  },
+});
+```
+
 ### watchEffect
 
 立即执行函数,同时动态地跟踪它的依赖项,并在依赖项发生改变时重新运行它
 
+### 源码
+
 ```js
-const count = ref(0);
-const stop = watchEffect(() => console.log(count.value));
-setTimeout(() => count.value++, 100);
-// 清除监视
-stop();
+function watchEffect(effect, options) {
+  return doWatch(effect, null, options);
+}
 ```
+
+:::warning `watch`与`watchEffect`相比
+`watch`多传入一个回调函数, `doWatch()`详情见[源码]()
+
+- 惰性的
+- 更详细地说明触发 watcher 程序重新运行的状态
+- 访问被监视状态地先前值和当前值
+
+:::
 
 #### 副作用失效
 
@@ -428,42 +670,41 @@ Vue 的反应系统缓冲无效的效果，并异步刷新它们，以避免在�
 - 当`count`变化时,将在组件更新后调用回调
 
 :::tip Note
-第一次执行实在挂载组件时执行的,因此,如果希望在观察到的效果中访问 DOM(模板引用),请在挂载的钩子中执行
+第一次执行实在挂载组件时执行的,因此,如果希望在 watchEffect 中访问 DOM(模板 refs),请在挂载的钩子中执行
+
 ```js
 onMounted(() => {
   watchEffect(() => {
-    // access the DOM or template refs
-  })
-})
+    // 访问DOM或模板refs
+  });
+});
 ```
+
 :::
-如果需要同步(`sync`)运行watchEffect或在组件更新之前(`pre`)重新运行, 可以传递带有`flush`选项的附加option对象(默认'post')
-####　Debugging
-- 在reactive或ref作为依赖项被跟踪时，将调用`onTrack`
-- 在依赖项发生变化时触发回调函数，调用onTrigger
+如果需要同步(`sync`)运行 watchEffect 或在组件更新之前(`pre`)重新运行, 可以传递带有`flush`选项的附加 option 对象(默认`post`)
+
+- type
 
 ```ts
-function watchEffect(
-  effect: (onInvalidate: InvalidateCbRegistrator) => void,
-  options?: WatchEffectOptions
-): StopHandle
+function watchEffect(effect: (onInvalidate: InvalidateCbRegistrator) => void, options?: WatchEffectOptions): StopHandle;
 
 interface WatchEffectOptions {
-  flush?: 'pre' | 'post' | 'sync'
-  onTrack?: (event: DebuggerEvent) => void
-  onTrigger?: (event: DebuggerEvent) => void
+  flush?: 'pre' | 'post' | 'sync';
+  onTrack?: (event: DebuggerEvent) => void;
+  onTrigger?: (event: DebuggerEvent) => void;
 }
 
 interface DebuggerEvent {
-  effect: ReactiveEffect
-  target: any
-  type: OperationTypes
-  key: string | symbol | undefined
+  effect: ReactiveEffect;
+  target: any;
+  type: OperationTypes;
+  key: string | symbol | undefined;
 }
 
-type InvalidateCbRegistrator = (invalidate: () => void) => void
-type StopHandle = () => void
+type InvalidateCbRegistrator = (invalidate: () => void) => void;
+type StopHandle = () => void;
 ```
+
 ## LifeCycle Hooks 生命周期函数
 
 所有现有的生命周期钩子都有对应的 onXXX 函数(只能在 `setup()`中使用)
@@ -488,19 +729,160 @@ setup(){
 - beforeDestroy -> onBeforeUnmount
 - destroyed -> onUnmounted
 - errorCaptured -> onErrorCaptured
-新增debug hooks
+  新增 debug hooks
 - onRenderTracked
 - onRenderTriggered
-功能与watch提供地onTrack和onTrigger类似
+  功能与 watch 提供地 onTrack 和 onTrigger 类似
 
 ```js
 export default {
   onRenderTriggered(e) {
-    debugger
+    debugger;
     // 检查哪个依赖导致组件重新re-render
-  }
+  },
+};
+```
+
+## Advanced Reactivity APIs
+
+### `customRef()`
+
+创建一个 能显式地控制它的依赖项跟踪和更新触发的自定义 ref。它接受一个工厂函数，这个工厂函数接受`track`和`trigger`函数为参数, 并返回带有`get`和`set`的对象
+
+#### example
+
+[在 codepen 中编辑](https://codepen.io/kory-lee/pen/XWmYPWb)
+
+```html
+<input v-model="text/>
+```
+
+```js
+function useDebounceRef(value, delay = 200) {
+  let timeout;
+  return customRef((track, trigger) => {
+    return {
+      get() {
+        track();
+        return value;
+      },
+      set(newValue) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          value = newValue;
+          trigger();
+        }, delay);
+      },
+    };
+  });
+}
+export default {
+  setup() {
+    return {
+      text: useDebounceRef('hello'),
+    };
+  },
+};
+```
+
+#### 源码
+
+```js
+function customRef(factory) {
+  const { get, set } = factory(
+    () => track(r, 'get' /* GET */, 'value'),
+    () => trigger(r, 'set' /* SET */, 'value')
+  );
+  const r = {
+    _isRef: true,
+    get value() {
+      return get();
+    },
+    set value(v) {
+      set(v);
+    },
+  };
+  return r;
 }
 ```
+
+### `markRaw`
+
+标记一个对象,使它不会转化为 proxy,返回这个对象
+
+- 用于某些不应该被激活的值,比如复杂的第三方实例或 Vue 组件对象
+- 对不可变数据源的大型列表时, 跳过性能转换可以提高性能
+
+```js
+const foo = markRaw({});
+console.log(isReactive(reactive(foo))); // false
+
+// 当嵌套在其他响应式对象时也可以工作
+const bar = reactive({ foo });
+console.log(isReactive(bar.foo)); // false
+```
+
+::: error
+**raw 的 opt-out 只是在根级别**。如果将一个嵌套的 raw 对象设置为一个响应式对象，就可以得到代理版本。
+
+- 这可能会导致**身份污染**(identity hazards)--即同时使用同一对象的`proxy`版本与`raw`版本
+
+```js
+const foo = markRaw({ nested: {} });
+const bar = reactive({
+  // 虽然foo被标记为raw,但是foo.nested并不是
+  nested: foo.nested,
+});
+```
+
+要正确地使用这些 api，同时安全地避免 identity hazards，需要对响应式性系统的工作原理有一个深刻的理解。
+:::
+
+### `shallowReactive`
+
+```js
+const state = shallowReactive({ foo: 1, nested: { bar: 2 } });
+// 响应式
+state.foo++;
+// 不转换嵌套对象
+isReactive(state.nested); // false
+state.nested.bar++; // non-reactive
+```
+
+### `shallowReadonly`
+
+```js
+const state = shallowReadonly({ foo: 1, nested: { bar: 2 } });
+// fail 不可写
+state.foo++;
+// 不转换嵌套对象
+isReadonly(state.nested); // false
+state.nested.bar++; // works可写
+```
+
+### `shallowRef`
+
+创建一个 ref 来跟踪其自身的`.value`突变，但不会使其值具有响应性。
+
+```js
+const foo = shallowRef({});
+// mutating the ref's value is reactive
+foo.value = {};
+// but the value will not be converted.
+isReactive(foo.value); // false
+```
+
+### `toRaw()`
+
+返回`reactive`或`readonly`proxy 的 raw、原始对象，这是个转义口，可用于临时读取而不会产生代理访问、跟踪开销
+
+> Return the raw, original object of a `reactive` or `readonly` proxy. This is an escape hatch that can be used to temporarily read without incurring proxy access / tracking overhead or write without triggering changes. It is not recommended to hold a persistent reference to the original object. Use with caution
+
+```js
+const foo = {};
+const reactiveFoo = reactive(foo);
+```
+
 ## provide & inject
 
 provide 和 inject 可以实现嵌套组件之间的数据传递。这两个函数只能在 setup()函数中使用。父组件中使用`provide()`函数向下传递；子级组件使用`inject()`获取上层传递过来的数据
@@ -806,7 +1188,7 @@ export default {
         { id: 4, isFixSearch: true, value: 'name4' },
         { id: 5, isFixSearch: true, value: 'name5' },
       ];
-      // 				可以很容易重命名
+      // 	可以很容易重命名
       const { onSearch, data: names, searchValue } = useSearch(originNames);
       return {
         onSearch,
@@ -840,3 +1222,9 @@ export default function useSearch(names) {
   };
 }
 ```
+
+## 参考
+
+-[Vue composition API](https://vue-composition-api-rfc.netlify.app/api.html#setup)
+
+- [Vue3.0-beta](https://unpkg.com/vue@3.0.0-beta.3/dist/vue.global.js)
