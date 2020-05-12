@@ -619,8 +619,8 @@ function watchEffect(effect, options) {
 }
 ```
 
-:::warning watch不同于watchEffect的地方
-`watch`多传入一个回调函数, `doWatch()`源码详情见watch部分
+:::warning watch 不同于 watchEffect 的地方
+`watch`多传入一个回调函数, `doWatch()`源码详情见 watch 部分
 
 - 惰性的
 - 更详细地说明触发 watcher 程序重新运行的状态
@@ -645,7 +645,7 @@ watchEffect((onInvalidate) => {
 
 #### Effect flush timing
 
-Vue 的反应系统缓冲无效的效果，并异步刷新它们，以避免在同一“tick”中发生许多 state 突变时不必要的重复调用。 在内部，组件的更新功能也是受监视的效果。 当用户效果排队时，总是在所有组件更新效果后调用它
+Vue 的反应系统缓冲无效，并异步刷新它们，以避免在同一“tick”中发生许多 state 突变时不必要的重复调用。 在内部，组件的更新功能也是受监视的效果。 当用户效果排队时，总是在所有组件更新效果后调用它
 
 ```vue
 <template>
@@ -656,11 +656,9 @@ Vue 的反应系统缓冲无效的效果，并异步刷新它们，以避免在�
   export default {
     setup() {
       const count = ref(0);
-
       watchEffect(() => {
         console.log(count.value);
       });
-
       return {
         count,
       };
@@ -750,7 +748,7 @@ export default {
 
 ### `customRef()`
 
-创建一个 能显式地控制它的依赖项跟踪和更新触发的自定义 ref。它接受一个工厂函数，这个工厂函数接受`track`和`trigger`函数为参数, 并返回带有`get`和`set`的对象
+创建一个能显式地控制依赖项跟踪和更新触发的自定义 ref。它接受一个工厂函数，这个工厂函数接受`track`和`trigger`函数为参数, 并返回带有`get`和`set`的对象
 
 #### example
 
@@ -1057,7 +1055,7 @@ LevelTwo.vue 组件：
 
 ## template refs
 
-通过``ref()`还可以引用页面上的元素或组件
+通过`ref()`还可以引用页面上的元素或组件
 
 ### 元素的引用
 
