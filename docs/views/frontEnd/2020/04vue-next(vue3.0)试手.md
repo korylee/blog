@@ -394,6 +394,8 @@ const count = ref(0);
 watch(count, (value, oldValue) => console.log(`from ${oldValue} to ${value}`));
 ```
 
+#### 源码
+
 ```js
 function watch(source, cb, options) {
   if (!isFunction(cb)) {
@@ -408,6 +410,7 @@ function watch(source, cb, options) {
 ```
 
 :::details doWatch()源码
+
 ```js
 function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EMPTY_OBJ) {
   if (!cb) {
@@ -608,7 +611,7 @@ watchEffect(() => {}, {
 
 立即执行函数,同时动态地跟踪它的依赖项,并在依赖项发生改变时重新运行它
 
-### 源码
+#### 源码
 
 ```js
 function watchEffect(effect, options) {
@@ -616,8 +619,8 @@ function watchEffect(effect, options) {
 }
 ```
 
-:::warning `watch`与`watchEffect`相比
-`watch`多传入一个回调函数, `doWatch()`详情见[源码]()
+:::warning watch不同于watchEffect的地方
+`watch`多传入一个回调函数, `doWatch()`源码详情见watch部分
 
 - 惰性的
 - 更详细地说明触发 watcher 程序重新运行的状态
@@ -822,8 +825,8 @@ const bar = reactive({ foo });
 console.log(isReactive(bar.foo)); // false
 ```
 
-::: error
-**raw 的 opt-out 只是在根级别**。如果将一个嵌套的 raw 对象设置为一个响应式对象，就可以得到代理版本。
+::: danger
+**raw 的 opt-out 只是在根级别**。你仍可以将 raw 对象的嵌套对象设置为一个响应式对象。
 
 - 这可能会导致**身份污染**(identity hazards)--即同时使用同一对象的`proxy`版本与`raw`版本
 
@@ -876,16 +879,59 @@ isReactive(foo.value); // false
 
 返回`reactive`或`readonly`proxy 的 raw、原始对象，这是个转义口，可用于临时读取而不会产生代理访问、跟踪开销
 
-> Return the raw, original object of a `reactive` or `readonly` proxy. This is an escape hatch that can be used to temporarily read without incurring proxy access / tracking overhead or write without triggering changes. It is not recommended to hold a persistent reference to the original object. Use with caution
+> 原文: Return the raw, original object of a `reactive` or `readonly` proxy. This is an escape hatch that can be used to temporarily read without incurring proxy access / tracking overhead or write without triggering changes. It is not recommended to hold a persistent reference to the original object. Use with caution
 
 ```js
 const foo = {};
 const reactiveFoo = reactive(foo);
+console.log(toRaw(reactiveFoo === foo));
 ```
 
 ## provide & inject
 
 provide 和 inject 可以实现嵌套组件之间的数据传递。这两个函数只能在 setup()函数中使用。父组件中使用`provide()`函数向下传递；子级组件使用`inject()`获取上层传递过来的数据
+
+### 源码
+
+```js
+function provide(key, value) {
+  if (!currentInstance) {
+    {
+      warn(`provide() can only be used inside setup().`);
+    }
+  } else {
+    let provides = currentInstance.provides;
+    // 默认情况下会继承其父对象的Provide对象,
+    // but when it needs to provide values of its own, it creates its
+    // own provides object using parent provides object as prototype.
+    // this way in `inject` we can simply look up injections from direct
+    // parent and let the prototype chain do the work.
+    const parentProvides = currentInstance.parent && currentInstance.parent.provides;
+    if (parentProvides === provides) {
+      provides = currentInstance.provides = Object.create(parentProvides);
+    }
+    provides[key] = value;
+  }
+}
+function inject(key, defaultValue) {
+  // fallback to `currentRenderingInstance` so that this can be called in
+  // a functional component
+  const instance = currentInstance || currentRenderingInstance;
+  if (instance) {
+    const provides = instance.provides;
+    if (key in provides) {
+      // TS doesn't allow symbol as index type
+      return provides[key];
+    } else if (arguments.length > 1) {
+      return defaultValue;
+    } else {
+      warn(`injection "${String(key)}" not found.`);
+    }
+  } else {
+    warn(`inject() can only be used inside setup() or functional components.`);
+  }
+}
+```
 
 ### 共享普通数据
 
@@ -1225,6 +1271,6 @@ export default function useSearch(names) {
 
 ## 参考
 
--[Vue composition API](https://vue-composition-api-rfc.netlify.app/api.html#setup)
+- [Vue composition API](https://vue-composition-api-rfc.netlify.app/api.html#setup)
 
 - [Vue3.0-beta](https://unpkg.com/vue@3.0.0-beta.3/dist/vue.global.js)
