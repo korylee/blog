@@ -1,3 +1,12 @@
+---
+title: requestAnimationFrame
+date: 2020-05-17
+tags:
+  - JavaScript
+categories:
+  - frontEnd
+---
+
 ### `requestAnimationFrame`
 
 #### 1. 是什么
