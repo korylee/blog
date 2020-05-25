@@ -319,9 +319,6 @@ setup(){
 
 ```js
 function toRefs(object) {
-  if (!isProxy(object)) {
-    console.warn(`toRefs() expects a reactive object but received a plain one.`);
-  }
   const ret = {};
   for (const key in object) {
     ret[key] = toRef(object, key);
@@ -374,7 +371,6 @@ watchEffect(() => {
 
 // mutating original will trigger watchers relying on the copy
 original.count++;
-
 // mutating the copy will fail and result in a warning
 copy.count++; // warning!
 ```
@@ -398,13 +394,6 @@ watch(count, (value, oldValue) => console.log(`from ${oldValue} to ${value}`));
 
 ```js
 function watch(source, cb, options) {
-  if (!isFunction(cb)) {
-    warn(
-      `\`watch(fn, options?)\` signature has been moved to a separate API. ` +
-        `Use \`watchEffect(fn, options?)\` instead. \`watch\` now only ` +
-        `supports \`watch(source, cb, options?) signature.`
-    );
-  }
   return doWatch(source, cb, options);
 }
 ```
@@ -413,16 +402,6 @@ function watch(source, cb, options) {
 
 ```js
 function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EMPTY_OBJ) {
-  if (!cb) {
-    if (immediate !== undefined) {
-      warn(
-        `watch() "immediate" option is only respected when using the ` + `watch(source, callback, options?) signature.`
-      );
-    }
-    if (deep !== undefined) {
-      warn(`watch() "deep" option is only respected when using the ` + `watch(source, callback, options?) signature.`);
-    }
-  }
   const instance = currentInstance;
   let getter;
   if (isArray(source)) {
