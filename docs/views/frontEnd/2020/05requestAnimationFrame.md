@@ -5,7 +5,7 @@ tags:
   - JavaScript
 categories:
   - frontEnd
-publish: false
+# publish: false
 ---
 
 ### `requestAnimationFrame`
