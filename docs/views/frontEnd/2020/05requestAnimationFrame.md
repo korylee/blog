@@ -8,7 +8,6 @@ categories:
 # publish: false
 ---
 
-### `requestAnimationFrame`
 
 #### 1. 是什么
 
