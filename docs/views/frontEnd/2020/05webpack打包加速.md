@@ -217,31 +217,32 @@ webpack 打包时,会从配置的 entry 触发,解析入口文件的导入语句
 6. 优化 module.noParse 配置
    此配置可以让 Webpack 忽略对部分没采用模块化的文件的递归解析处理，这样做的好处是能提高构建性能。原因是 jQuery、ChartJS，他们庞大有没有采用模块化标准，让 webpack 去解析这些文件耗时有没有意义。
 7. 详细配置
-   ```js
-   module.exports = {
-     module: {
-       // 项目中使用的jQuery没有采用模块化标准，
-       noParse: /jquery/,
-       rules: [
-         {
-           // 这里编译js、jsx
-           // 注意：如果项目源码中没有jsx文件就不要写/\.jsx?$/, 提升正则表达式性能
-           test: /\.(js|jsx)$/,
-           // babel-loader支持缓存转换出的结果，通过cacheDirectory选项开启
-           use: ['babel-loader?cacheDirectory'],
-           // 排除node_modules目录下的文件
-           exclude: /node_modules/,
-         },
-       ],
-     },
-     resolve: {
-       // 设置模块导入规则，import/require时会直接在这些目录寻找文件
-       // 可以指明存放第三方模块的绝对路径，以减少寻找
-       modules: [path.resolve(`${project}/cliect/components`), path.resolve('h5_commonr/components'), 'node_modules'],
-       // import时省略后缀
-       // 注意： 尽可能较少后缀尝试的可能性
-       extension: ['.js', '.jsx', '.react.js', '.css', '.json'],
-       alias: { '@components': path.resolve(`${project}/components`) },
-     },
-   };
-   ```
+
+```js
+module.exports = {
+  module: {
+    // 项目中使用的jQuery没有采用模块化标准，
+    noParse: /jquery/,
+    rules: [
+      {
+        // 这里编译js、jsx
+        // 注意：如果项目源码中没有jsx文件就不要写/\.jsx?$/, 提升正则表达式性能
+        test: /\.(js|jsx)$/,
+        // babel-loader支持缓存转换出的结果，通过cacheDirectory选项开启
+        use: ['babel-loader?cacheDirectory'],
+        // 排除node_modules目录下的文件
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    // 设置模块导入规则，import/require时会直接在这些目录寻找文件
+    // 可以指明存放第三方模块的绝对路径，以减少寻找
+    modules: [path.resolve(`${project}/cliect/components`), path.resolve('h5_commonr/components'), 'node_modules'],
+    // import时省略后缀
+    // 注意： 尽可能较少后缀尝试的可能性
+    extension: ['.js', '.jsx', '.react.js', '.css', '.json'],
+    alias: { '@components': path.resolve(`${project}/components`) },
+  },
+};
+```
