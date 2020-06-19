@@ -6,7 +6,6 @@ tags:
   - Vue
 categories:
   - frontEnd
-publish: false
 ---
 
 ::: theorem
