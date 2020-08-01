@@ -40,7 +40,7 @@ new Vue(options){
 
 ### created 被调用完成
 
-调用 \$mount 方法，开始挂载组件到 dom 上。
+调用 $mount 方法，开始挂载组件到 dom 上。
 
 如果使用了`runtime-with-compile`版本,则会把你传入的`template`选项或者`html`文本,通过一系列的编译生成 render 函数
 
@@ -69,7 +69,7 @@ updateComputed = () => {
 };
 ```
 
-拆开来看,`vm._render`其实就是调用我们上一步拿到的`render`函数生成一个`vnode`,而`vm._update`方法则会对这个`vnode`进行`patch`操作, 帮我们把`vnode`通过` createElm``函数创建新节点并且渲染到 `dom 节点`中
+拆开来看,`vm._render`其实就是调用我们上一步拿到的`render`函数生成一个`vnode`,而`vm._update`方法则会对这个`vnode`进行`patch`操作, 帮我们把`vnode`通过` createElm`函数创建新节点并且渲染到 `dom 节点`中
 
 然后通过响应式原理的一个核心类`Watcher`负责代理执行函数，通过在这段过程中去跟踪这些函数读取了哪些响应式数据，将来这些响应式数据更新的时候，重新执行`updateComponent`函数
 

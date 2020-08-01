@@ -80,6 +80,7 @@ Event loop 是单线程问题的一种解决机制，所以在正式开始前先
   - 主要包含：` Promise``.then `、`MutationObserver`、`process.nextTick`(node.js 环境)
 
 ## Node 中的 Event Loop
+
 ![Node](/img/nodeEventLoop.png)
 相比浏览器端，宏任务与微任务分别增加一个，上文已经列出来这里就不再赘述
 
@@ -92,33 +93,34 @@ setImmediate 只在事件循环 check 阶段执行, poll 阶段空闲时会检�
 :::
 
 ## 贴个题
+
 [解答在这里](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/7)
 
 ```js
 async function async1() {
-  console.log('async1 start');
+  console.log("async1 start");
   await async2();
-  console.log('async1 end');
+  console.log("async1 end");
 }
 async function async2() {
-  console.log('async2');
+  console.log("async2");
 }
 
-console.log('script start');
+console.log("script start");
 
 setTimeout(function() {
-  console.log('setTimeout');
+  console.log("setTimeout");
 }, 0);
 
 async1();
 
 new Promise(function(resolve) {
-  console.log('promise1');
+  console.log("promise1");
   resolve();
 }).then(function() {
-  console.log('promise2');
+  console.log("promise2");
 });
-console.log('script end');
+console.log("script end");
 
 /*
 script start
@@ -131,7 +133,9 @@ promise2
 setTimeout
 */
 ```
+
 这个忘了是在哪看的来着
+
 ```JS
 console.log('1');
 setTimeout(function() {
