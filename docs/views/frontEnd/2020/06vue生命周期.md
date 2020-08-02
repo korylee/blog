@@ -40,7 +40,7 @@ new Vue(options){
 
 ### created 被调用完成
 
-调用 $mount 方法，开始挂载组件到 dom 上。
+调用 \$mount 方法，开始挂载组件到 dom 上。
 
 如果使用了`runtime-with-compile`版本,则会把你传入的`template`选项或者`html`文本,通过一系列的编译生成 render 函数
 
@@ -69,7 +69,7 @@ updateComputed = () => {
 };
 ```
 
-拆开来看,`vm._render`其实就是调用我们上一步拿到的`render`函数生成一个`vnode`,而`vm._update`方法则会对这个`vnode`进行`patch`操作, 帮我们把`vnode`通过` createElm`函数创建新节点并且渲染到 `dom 节点`中
+拆开来看,`vm._render`其实就是调用我们上一步拿到的`render`函数生成一个`vnode`,而`vm._update`方法则会对这个`vnode`进行`patch`操作, 帮我们把`vnode`通过`createElm`函数创建新节点并且渲染到 `dom 节点`中
 
 然后通过响应式原理的一个核心类`Watcher`负责代理执行函数，通过在这段过程中去跟踪这些函数读取了哪些响应式数据，将来这些响应式数据更新的时候，重新执行`updateComponent`函数
 
@@ -83,7 +83,7 @@ new Watcher(
   {
     before() {
       if (vm._isMounted) {
-        callHook(vm, 'beforeUpdate');
+        callHook(vm, "beforeUpdate");
       }
     },
   },
@@ -133,7 +133,7 @@ child.$mount(vnode.elm);
 当一个响应属性被更新后,出发了`Watcher`的回调函数,也就是`vm._update(vm._render())`,在更新之前,会先调用刚才`before`属性上定义的函数,也就是
 
 ```js
-callHook(vm, 'beforeUpdate');
+callHook(vm, "beforeUpdate");
 ```
 
 由于 Vue 的异步更新机制,`beforeUpdate`的调用已经是在`nextTick`中了.具体代码如下
@@ -166,23 +166,23 @@ function callUpdateHooks(queue) {
     const watcher = queue[i];
     const vm = watcher.vm;
     if (vm._watcher === watcher && vm._isMounted) {
-      callHook(vm, 'updated');
+      callHook(vm, "updated");
     }
   }
 }
 ```
 
-### updaed 被调用完成
+### updated 被调用完成
 
 至此,渲染更新完毕
 
 ## 销毁流程
 
-在刚刚所说的更新后的 patch 过程中,如果发现有组件在这一轮渲染中消失了,比如 v-for 对应的数组中少了一个数据,那么就会调用`removeVnodes`进入组组件的销毁流程
+在刚刚所说的更新后的 patch 过程中,如果发现有组件在这一轮渲染中消失了,比如 `v-for` 对应的数组中少了一个数据,那么就会调用`removeVnodes`进入组组件的销毁流程
 
-`removeVnodes`会调用`vnode`的`destory`生命周期,而 destroy 内部则会 调用我们相对比较熟悉的`vm.$destroy()`。（keep-alive 包裹的子组件除外
+`removeVnodes`会调用`vnode`的`destroy`生命周期,而 destroy 内部则会 调用我们相对比较熟悉的`vm.$destroy()`。（keep-alive 包裹的子组件除外
 
-这时，就会调用 callHook(vm，'BeforeDestroy')
+这时，就会调用 `callHook(vm，'BeforeDestroy')`
 
 ### beforeDestroy 被调用完成
 
@@ -190,6 +190,6 @@ function callUpdateHooks(queue) {
 
 但是注意: `$destroy`并不会把组件从试图上移除，如果想要手动的销毁一个组件，则需要我们自己去完成这个逻辑
 
-然后，调用最后的`callHook(vm,;destroy')
+然后，调用最后的`callHook(vm,;destroy')`
 
 ### destroy 被调用完成
