@@ -33,7 +33,7 @@ HTTP 协议就是基于 TCP/IP 协议模型来传输信息的
    - UDP 则为应用层提供一种非常简单的服务。他只是把称作数据报的分组从一台主机传送到另一台主机，但并不保证该数据报能到达另一端。一个数据包是指从发送方传输到接收方的一个信息单元。UDP 协议任何必须的可靠性必须由应用层来提供
 4. 应用层
 
-   - 应用层决定了像用于童工应用服务时贴心的 3 活动。TCP/IP 协议族内渔村了各类通用的应用服务。包括 HTTP，FTP（File Transfer Protocol，文件传输协议），DNS（Domain Name System，域名系统）服务
+   - 应用层决定了像用于童工应用服务时贴心的活动。TCP/IP 协议族内预存了各类通用的应用服务。包括 HTTP，FTP（File Transfer Protocol，文件传输协议），DNS（Domain Name System，域名系统）服务
 
 ![TCP](/img/06/TCP.png)
 

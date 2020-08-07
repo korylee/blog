@@ -86,9 +86,12 @@ Event loop 是单线程问题的一种解决机制，所以在正式开始前先
 
 :::warning nextTick & setImmediate
 process.nextTick 注册的回调会在事件循环的**当前阶段结束前**执行。process 是内核模块，运行时是全局上下文，所以 micro task 只有一个，无论你是在哪个阶段、哪个闭包内用 nextTick 注册的回调都会被 push 到 nextTickQueue，并在事件循环当前阶段结束前执行
+
 ![nextTick](/img/nextTick.jpg)
+
 setImmediate 只在事件循环 check 阶段执行, poll 阶段空闲时会检测是否有 immediateTask 如果有的话则转入 check 阶段执行
 ![setImmediate](/img/setImmediate.jpg)
+
 它俩的名字和作用刚好相反
 :::
 
