@@ -14,7 +14,7 @@ publish: false
 优化 webpack 构建速度的第一步是知道精力集中在哪里。我们可以通过`speed-measure-webpack-plugin`测量 webpack 构建期间各个阶段花费的时间
 
 ```js
-cosnt SpeedMeasurePlugin = require("speed-measure-webpack-plugin")
+const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 ```
 
 ## 2. 分析影响打包速度细节
@@ -39,24 +39,24 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         // 创建一个js worker池
-        user: ['thread-worker', 'babel-loader'],
+        user: ["thread-worker", "babel-loader"],
       },
       {
         test: /\.s?css$/,
         exclude: /node_modules/,
         // 创建一个js worker池
         user: [
-          'babel-loader',
-          'thread-loader',
+          "babel-loader",
+          "thread-loader",
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: true,
-              localIndetName: '[name]__[local]--[hash:base64:5]',
+              localIndentName: "[name]__[local]--[hash:base64:5]",
               importLoaders: 1,
             },
           },
-          'postcss-loader',
+          "postcss-loader",
         ],
       },
     ],
@@ -69,7 +69,7 @@ module.exports = {
   - 为了防止 worker 的高延迟，提供了对 worker 池的优化： 预热
 
 ```js
-const threadLoader = require('thread-loader');
+const threadLoader = require("thread-loader");
 const jsWorkerPool = {
   // 产生的worker数量,默认是(cpu核心数 - 1)
   // 当require('os').cpus()是undefined时,则为1
@@ -98,8 +98,8 @@ module.exports = {
     rules: [
       {
         test: /\.ext$/,
-        use: ['cache-loader', ...loaders],
-        include: path.resolve('src'),
+        use: ["cache-loader", ...loaders],
+        include: path.resolve("src"),
       },
     ],
   },
@@ -108,7 +108,7 @@ module.exports = {
 
 请注意，保存和读取这些缓存文件会有一些时间开销，所以请只对性能开销较大的 loader 使用。
 
-2. HardSourceWebpackPugin
+2. HardSourceWebpackPlugin
 
 - 第一次构建将花费正常时间
 - 第二次构建将显著加快(大概提升 90%的构建速度)
@@ -212,7 +212,7 @@ webpack 打包时,会从配置的 entry 触发,解析入口文件的导入语句
    ```
    webpack 会根据`mainFields`的配置去决定优先采用哪份代码，`mainFields`默认如下
    ```js
-   mainFields: ['browser', 'main'];
+   mainFields: ["browser", "main"];
    ```
 6. 优化 module.noParse 配置
    此配置可以让 Webpack 忽略对部分没采用模块化的文件的递归解析处理，这样做的好处是能提高构建性能。原因是 jQuery、ChartJS，他们庞大有没有采用模块化标准，让 webpack 去解析这些文件耗时有没有意义。
@@ -229,7 +229,7 @@ module.exports = {
         // 注意：如果项目源码中没有jsx文件就不要写/\.jsx?$/, 提升正则表达式性能
         test: /\.(js|jsx)$/,
         // babel-loader支持缓存转换出的结果，通过cacheDirectory选项开启
-        use: ['babel-loader?cacheDirectory'],
+        use: ["babel-loader?cacheDirectory"],
         // 排除node_modules目录下的文件
         exclude: /node_modules/,
       },
@@ -238,11 +238,15 @@ module.exports = {
   resolve: {
     // 设置模块导入规则，import/require时会直接在这些目录寻找文件
     // 可以指明存放第三方模块的绝对路径，以减少寻找
-    modules: [path.resolve(`${project}/cliect/components`), path.resolve('h5_commonr/components'), 'node_modules'],
+    modules: [
+      path.resolve(`${project}/cliect/components`),
+      path.resolve("h5_commonr/components"),
+      "node_modules",
+    ],
     // import时省略后缀
     // 注意： 尽可能较少后缀尝试的可能性
-    extension: ['.js', '.jsx', '.react.js', '.css', '.json'],
-    alias: { '@components': path.resolve(`${project}/components`) },
+    extension: [".js", ".jsx", ".react.js", ".css", ".json"],
+    alias: { "@components": path.resolve(`${project}/components`) },
   },
 };
 ```

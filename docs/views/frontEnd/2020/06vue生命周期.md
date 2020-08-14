@@ -124,7 +124,7 @@ child.$mount(vnode.elm);
 父 mounted
 ```
 
-然后`mouted`生命周期被触发
+然后`mounted`生命周期被触发
 
 ### mounted 被调用完成
 

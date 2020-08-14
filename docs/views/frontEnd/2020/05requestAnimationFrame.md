@@ -8,49 +8,42 @@ categories:
 # publish: false
 ---
 
-
 #### 1. 是什么
 
 `requestAnimationFrame`方法会告诉浏览器希望执行动画并请求浏览器在下一次重绘之前调用回调函数更新动画
 
-```JS
-window.requestAnimationFrame(callback)
+```js
+window.requestAnimationFrame(callback);
 ```
 
 - callback: 下一次重绘之前更新动画帧所调用的函数, callback 仅有一个参数,为`DOMHighResTimStamp`参数,表示`requestAnimationFrame()`开始执行回调函数的时刻
-
 - 返回值: 一个 long 类型整数,唯一标志元组在列表中的位置,你可以传这个值给`cancelAnimationFrame()`取消动画
 
-```JS
-let count = 0
-let rafID = null
-/*
-* 回调函数
-* @param time requestAnimationFrame 调用函数时,自动传入一个时间
-*/
-function requestAnimation(time){
-  console.log(time)
+```js
+let count = 0;
+let rafID = null;
+/**
+ * @param time requestAnimationFrame 调用函数时,自动传入一个时间
+ */
+function requestAnimation(time) {
+  console.log(time);
   // 动画没有执行完,则递归渲染
-  if(count<5){
-    count++
+  if (count < 5) {
+    count++;
     // 渲染下一帧
-    rafID= window.requestAnimationFrame(requesAnmation)
+    rafID = window.requestAnimationFrame(requestAnimation);
   }
 }
 // 渲染第一帧
-window.requestAnmationFrame(requestAnmiation)
+window.requestAnimationFrame(requestAnimation);
 ```
 
 #### 2. 怎样执行
 
 - 首先判断`document.hidden`属性是否可见(true), 可见状态下才能继续执行
-
 - 浏览器清空上一轮的动画函数
-
 - `requestAnimationFrame`将回调函数追加到动画帧请求回调函数的末尾
-
   注意: 当执行`window.requestAnimationFrame(callback)`的时候,**不会立即调用 callback 回调函数,而是将其放入回调函数队列而已**,同时注意, 每个回调函数都有一个 canceled 标识符, 初始值为 false,并对外不可见
-
 - 单页面可见并且动画请求 callback**回调函数列表不为空**时,浏览器会**定期**将这些回调函数加入到浏览器 UI 线程的队列中(**由系统来决定回调函数的执行时机**)。当浏览器执行这些 callback 回调函数的时候，会判断每个元组的 callback 的 cancelled 标识符，只有**cancelled 为 false 时，才执行 callback 的回调函数**。
 
 #### 3. 优点
@@ -65,7 +58,7 @@ window.requestAnmationFrame(requestAnmiation)
 
    `setTimeout`**的执行只是在内存中对图像进行改变，这个改变必须要等到下次浏览器重绘时才会被更新到屏幕上**。如果和屏幕刷新步调不一致，就可能导致中间某些帧的操作被跨越过去，直接更新到下下一帧的图像。即**掉帧**。
 
-   使用`requestAnimationFrane`执行动画,最大优势是能**保证回调函数在屏幕每一次刷新间隔中被执行一次**，这样就不会引起丢帧，动画就不会卡顿
+   使用`requestAnimationFrame`执行动画,最大优势是能**保证回调函数在屏幕每一次刷新间隔中被执行一次**，这样就不会引起丢帧，动画就不会卡顿
 
 3. 节省资源，节省开销
 
@@ -84,7 +77,7 @@ window.requestAnmationFrame(requestAnmiation)
        requestAnimationFrame(requestAnimation)
      }
    }
-   requestAnimationFrame(requsetAnimation)
+   requestAnimationFrame(requestAnimation)
    ```
 
    4. 能在动画流刷新之后执行，即上一个动画流会**完整执行**
@@ -93,32 +86,32 @@ window.requestAnmationFrame(requestAnmiation)
 
 可以使用`requestAnimationFrame`实现`setTimeout`及`setInterval`
 
-```JS
-function setInterval(callback,interval){
-  let timer
-  const now = Date.now
-  let startTime = now()
-  let endTime = startTime
+```js
+function setInterval(callback, interval) {
+  let timer;
+  const now = Date.now;
+  let startTime = now();
+  let endTime = startTime;
   let loop = () => {
-    timer = window.requestAnimationFrame(loop)
-    endTime = now()
-    if(endTime - startTime >= interval){
-      startTime = endTime = now()
-      callback(timer)
+    timer = window.requestAnimationFrame(loop);
+    endTime = now();
+    if (endTime - startTime >= interval) {
+      startTime = endTime = now();
+      callback(timer);
     }
-  }
-  timer = window.requestAnimationFrame(loop)
-  return timer
+  };
+  timer = window.requestAnimationFrame(loop);
+  return timer;
 }
-let a = 0
-setInterval(timer=>{
-  console.log(a)
-  a++
-  if(a===3) window.cancelAnimationFrame(tiemr)
-},1000)
+let a = 0;
+setInterval((timer) => {
+  console.log(a);
+  a++;
+  if (a === 3) window.cancelAnimationFrame(timer);
+}, 1000);
 ```
 
-```JS
+```js
 // setTimeout()
 function setTimeout(callback,interval){
   let timer
@@ -127,7 +120,7 @@ function setTimeout(callback,interval){
   let endTime = startTime
   const loop = () => {
     timer = window.requestAnimationFrame(loop)
-    endtime = now()
+    endTime = now()
     of(endTime-startTime >= interval){
       callback(timer)
       window.cancelAnimationFrame(timer)
