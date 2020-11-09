@@ -536,5 +536,32 @@ node 模块解析方式
 
 默认所有可见的"@types"包含在编译过程中被包含进来。如果指定了 typeRoots，只有 typeRoots 下面的包才会被包含进来。
 
-<br>
-待续
+> 可以指定“types”：[]来禁用自动引入@types 包
+
+### 14. files、include 和 exclude
+
+`编译文件包含哪些文件以及排除哪些文件`
+
+未设置 include 时，编译器默认包含当前目录和子目录下所有的 Typescript 文件（.ts , .d.ts 和.tsx）。如果 allowJs 被设置为 true，JS 文件（js 和 jsx）也被包含进来。exclude 排除那些不需要编译的文件或文件夹
+
+```json
+{
+  "compilerOptions": {},
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
+```
+
+### 15. tsconfig.json 全解析
+
+```json
+{
+  "compilerOptions": {
+    /*基本选项*/
+    "target": "ES5", //指定ECMAScript目标版本:"ES3"(default),"ES5","ES2015","ES2016","ES2017" or "ESNext"("ESNext"表示最新的ES语法,包括还处在stage x阶段)
+    "module": "commonjs", // 指定使用模块:"commonjs","amd","system","umd"or"es2015"
+    "lib": [], // 指定要包含在编译中的库文件
+    "allowjs"
+  }
+}
+```
