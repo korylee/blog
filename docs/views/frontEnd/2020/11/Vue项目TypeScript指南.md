@@ -245,7 +245,7 @@ export default class YourComponent extends Vue {
 
 ### 3.3 Vuex-class
 
-![vuex-class](https://github.com/ktsn/vuex-class)是基于 vue-class-component 对 vuex 提供的装饰器
+[vuex-class](https://github.com/ktsn/vuex-class)是基于 vue-class-component 对 vuex 提供的装饰器
 
 - @State
 - @Getter
@@ -374,4 +374,42 @@ d.ts 文件(A.d.ts)文件放到哪个目录里，如果是模块化的话就放�
 
 ### 4.3 扩展 npm 包 - 应用端补充
 
-有时
+有时通过 import 导入一个插件模板，可以改变另一个原有模块的结构。此时如果原有模块已经有了类型声明文件，而插件模板没有类型声明文件（最常见的定义是`Vue.prototype.$xxx`），就会导致类型不完整，缺少部分的类型。
+ts 提供了一个语法`declare module`，它可以用来扩展原有模块的类型
+
+```ts
+// 如果是需要扩展原有模块的话，需要类型声明文件中先引用原有模块，再使用declare module扩展原有模块
+import Vue from "vue";
+declare module "vue/types/vue" {
+  interface Vue {
+    $openDialog: Function;
+    $closeDialog: Function;
+  }
+}
+```
+
+::: warning
+在全局变量的声明文件中，是不允许出现 import,export 关键字。一旦出现了，那么他就会被视为一个 npm 库或 UMD 库，就不再是全局变量的声明文件了
+:::
+
+### 4.4 发布 npm 包-npm 源码端补充
+
+1. [自动生成声明文件](https://ts.xcatliu.com/basics/declaration-files.html#%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E5%A3%B0%E6%98%8E%E6%96%87%E4%BB%B6)
+
+   如果库的源码本身就是由 ts 写的，那么在使用 tsc 脚本将 ts 编译为 js 的时候，添加 declaration 选项，那么可以同时叶生成 d.ts 文件了。此时每个 ts 文件都会生成 d.ts 文件，使用方可以单独 import 每个 ts 子文件
+
+2. [发布声明文件](https://ts.xcatliu.com/basics/declaration-files.html#%E5%8F%91%E5%B8%83%E5%A3%B0%E6%98%8E%E6%96%87%E4%BB%B6)
+   1. 如果声明文件是`通过tsc自动生成`的，那么无需做任何其他配置，只需要把编译好的文件也发布到 npm 上，使用方就可以获取到类型提示了（因为每一个 ts 文件都有对应的.d.ts 文件）。
+   2. 如果是`手动写的声明文件`，那么需要满足以下条件之一，才能被正确的识别：
+      1. 给 package.json 中的 types 或 typings 字段指定一个类型声明文件地址
+      2. 在项目根目录，编写一个`index.d.ts`文件
+      3. 针对入口文件（package.json 中的 main 字段指定的入口文件），编写一个同命不同后缀的.d.ts 文件
+
+使用 ts 书写后缀时，自动生成同时，也可以手动设置 d.ts 文件
+
+```ts
+declare module "xxx";
+export * from "../lib";
+```
+
+## 5 tsconfig.json
