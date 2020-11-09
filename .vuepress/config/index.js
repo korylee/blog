@@ -1,10 +1,10 @@
 const nav = require("./nav/index.js");
 module.exports = {
   nav,
-  sidebar: "auto",
-  // {
-  //   "/docs/theme-reco/": ["", "theme", "plugin", "api"],
-  // },
+  sidebar: {
+    "/docs/theme-reco/": ["", "theme", "plugin", "api"],
+    "/docs/vue/": ["", "theme", "plugin", "api"],
+  },
   type: "blog",
   blogConfig: {
     category: { location: 2, text: "Category" },

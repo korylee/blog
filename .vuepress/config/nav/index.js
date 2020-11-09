@@ -17,6 +17,10 @@ module.exports = [
         text: "vuepress-reco",
         link: "/docs/theme-reco/",
       },
+      {
+        text: "vue",
+        link: "/docs/vue/",
+      },
     ],
   },
   {

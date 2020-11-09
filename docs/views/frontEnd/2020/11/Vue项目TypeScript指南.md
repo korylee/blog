@@ -413,3 +413,128 @@ export * from "../lib";
 ```
 
 ## 5 tsconfig.json
+
+### 1. experimentalDecorators
+
+`是否启用实验性的ES装饰器`。Boolean 类型，默认 false，[官方解释](https://www.typescriptlang.org/docs/handbook/decorators.html)
+
+TypeScript 和 ES6 引入了 Class 的概念，同时在[stage 2 proposal](https://github.com/tc39/proposal-decorators)提出了 java 等服务端语言早就有的装饰器模式，能极大简化书写代码，把一些通用逻辑封装到装饰器中。很多库都有用到该特性，比如 vue-class-component 和 vuex-class。_当你使用这些库时，必须开启 experimentalDecorators_.
+
+```ts
+function f() {
+  console.log("f();evaluated");
+  return function(target, propertyKey: string, descriptor: PropertyDescriptor) {
+    console.log("fn() called");
+  };
+}
+```
+
+> 启用 vuex-class 它是需要设置`strictFunctionTypes`选项为 false
+
+### 2. strictPropertyInitialization
+
+`是否类的undefined属性已经在构造函数里初始化`.boolean 类型,默认值:false
+直白点,就是所有的属性值,都需要赋有初始值.建议把 strictPropertyInitialization 设置为 false,这样就不需要定义一个变量就必须附有初始值.对使用 vuex-class 的同学,建议把这个值设为 false,绝对能省很多事。
+
+```ts
+export default class Home extends Vue {
+  jobId: string;
+  method1(): void {
+    console.log(this.jobId);
+  }
+}
+```
+
+> 如果设置该选项为 true,需要同时启用--strictNullChecks 或启用 --strict
+
+### 3. noImplicitAny
+
+`有隐含的any类型时报错`。boolean 值,默认值为 false
+
+### 4. target
+
+`指定编译的ECMAScript目标版本`.枚举值"ES3","ES5","ES6/2015","ES2016","ES2017","ESNext"。默认值“ES3”
+
+typescript 是 ES6 的超集，所以你可以使用 ES6 来编写 ts 代码（通常我们也的确这么做）。然而，当编译 ts 代码时，可以把 ts 转为 ES5 或更早的 js 代码。所以需要选择一个编译的目标版本。vue-cli3 的 typescript 模板，设置为“ESNext”，因为现代大部分应用项目都会使用 webpack 进行打包,webpack 会把你的代码转换成在所有浏览器中可以运行的代码
+
+### 5. module
+
+`指定生成哪个模块系统代码`.枚举值:"None","CommonJS","AMD","System","UMD","ES6","ES2015","ESNext"。默认值会根据--target 选项不同而不同，当 target 设置为 ES6 时，默认 module 为“ES6”,否则为"commonjs"
+
+通常使用 ES6 的模块系统来写代码,然而在 2015 年 1 月以前,基本上没有浏览器原生支持 ES6 的模块系统,所以需要转换为不同的模块的模块系统,如:CommonJS,AMD,SystemJS 等,而 module 选项就是指定编译使用对应的模块系统
+
+### 6. lib
+
+`编译过程需要引入的库文件的列表`,string 类型，可选的值有很多，常用的有 ES5，ES6，ESNext，DOM，DOM.iterable，WebWorker，ScriptHost 等。该值默认值是根据--target 选项不同而不同。当 target 为 ES5 时，默认值为['DOM','ES5','ScriptHost'];当 target 为 ES6 时,默认值为['DOM','ES6','DOM.iterable','ScriptHost']
+
+为了在 ts 代码中使用 ES6 中的类,比如 Array.from、Set、Reflect 等，需要设置 lib 选项，在编译过程中把这些标准库引入。这样在编译过程中，如果遇到属于这些标准库的 class 或 api 时，ts 编译器不会报错
+
+### 7. moduleResolution
+
+`决定如何处理模块`.string 类型,"node 或者 classic",默认值"classic".[官方解释](https://www.typescriptlang.org/docs/handbook/module-resolution.html)
+
+也就是遇到`import {AAA} from './aaa`该如何去找对应文件模块.对于工程项目, 建议使用 node(vue-cli3 ts 模板默认设置为 node 策略),因为这个更符合平时的书写习惯和认知
+
+::: tip
+//在源文件/root/src/A.ts 中 import {b} from "./moduleB"
+// 两种解析方式查找方式不同'
+
+classic 解析方式
+
+1. /root/src/moduleB.ts
+2. /root/src/moduleB.d.ts
+
+node 模块解析方式
+
+1. /root/src/moduleB.ts
+2. /root/src/moduleB.tsx
+3. /root/src/moduleB.d.ts
+4. /root/src/moduleB.package.json(if it specifies a "types" property)
+5. /root/src/moduleB/index.ts
+6. /root/src/moduleB/index.tsx
+7. /root/src/moduleB/index.d.ts
+
+:::
+
+### 8. paths
+
+`模块名或路径映射的列表`。Object 值
+
+这是一个非常有用的选项，比如我们经常使用`@/utils/help`来代替`../src/utils/help`
+
+```json
+{
+  "baseUrl": ".", //注意:baseUrl必不可少
+  "path": { "@/*": ["src/*"] } //映射列表
+}
+```
+
+### 9. strictNullChecks
+
+`是否开启严格的null检查模式`。boolean 值，默认值 false
+
+未处理的 null 和 undefined 经常会导致 bug 产生，所以 typescript 包含了 strictNullChecks 选项来帮助我们减少对这种情况的担忧。当启用了 strictNullChecks，null 和 undefined 获得了他们自己各自的类型 null 和 undefined。开启该模式有助于发现并处理可能为 undefined 的赋值。
+:::warning 注意
+启用--strict 相当于启用
+
+--noImplicitAny，--noImplicitThis，--alwaysStrict，--strictNullChecks，--StrictFunctionTypes 和 --strictPropertyInitialization
+:::
+
+### 10. noUnusedLocals
+
+`有未使用的变量时，是否抛出错误`。boolean 值，默认值：false
+
+### 11. noUnUsedParameters
+
+`有未使用的参数时,是否抛出错误`。boolean 值，默认值：false
+
+### 12. allowJS
+
+`是否允许编译 js 文件`。 boolean 值，默认值：false
+
+### 13.typeRoots 和 types
+
+默认所有可见的"@types"包含在编译过程中被包含进来。如果指定了 typeRoots，只有 typeRoots 下面的包才会被包含进来。
+
+<br>
+待续
