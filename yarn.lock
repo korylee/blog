@@ -8308,7 +8308,7 @@ vuepress-plugin-smooth-scroll@^0.0.9:
   dependencies:
     smoothscroll-polyfill "^0.4.4"
 
-vuepress-theme-reco@1.5.7:
+vuepress-theme-reco@^1.5.7:
   version "1.5.7"
   resolved "https://registry.npm.taobao.org/vuepress-theme-reco/download/vuepress-theme-reco-1.5.7.tgz#100c92b33dcd931874952ac4eb27e123cfbf87ce"
   integrity sha1-EAySsz3Nkxh0lSrE6yfhI8+/h84=
@@ -8324,9 +8324,9 @@ vuepress-theme-reco@1.5.7:
     vue-click-outside "1.1.0"
     vuepress-plugin-smooth-scroll "^0.0.9"
 
-vuepress@1.7.1:
+vuepress@^1.7.1:
   version "1.7.1"
-  resolved "https://registry.npm.taobao.org/vuepress/download/vuepress-1.7.1.tgz#bb0e139d8c407a0b5aa962cf9577832a5808937e"
+  resolved "https://registry.npm.taobao.org/vuepress/download/vuepress-1.7.1.tgz?cache=0&sync_timestamp=1602814879374&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fvuepress%2Fdownload%2Fvuepress-1.7.1.tgz#bb0e139d8c407a0b5aa962cf9577832a5808937e"
   integrity sha1-uw4TnYxAegtaqWLPlXeDKlgIk34=
   dependencies:
     "@vuepress/core" "1.7.1"
