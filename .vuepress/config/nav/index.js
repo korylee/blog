@@ -14,10 +14,6 @@ module.exports = [
     icon: "reco-message",
     items: [
       {
-        text: "vuepress-reco",
-        link: "/docs/theme-reco/",
-      },
-      {
         text: "vue",
         link: "/docs/vue/",
       },

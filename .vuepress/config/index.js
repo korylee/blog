@@ -1,8 +1,8 @@
 const nav = require("./nav/index.js");
 module.exports = {
   nav,
+  subSidebar: "auto",
   sidebar: {
-    "/docs/theme-reco/": ["", "theme", "plugin", "api"],
     "/docs/vue/": ["", "theme", "plugin", "api"],
   },
   type: "blog",

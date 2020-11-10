@@ -561,7 +561,62 @@ node 模块解析方式
     "target": "ES5", //指定ECMAScript目标版本:"ES3"(default),"ES5","ES2015","ES2016","ES2017" or "ESNext"("ESNext"表示最新的ES语法,包括还处在stage x阶段)
     "module": "commonjs", // 指定使用模块:"commonjs","amd","system","umd"or"es2015"
     "lib": [], // 指定要包含在编译中的库文件
-    "allowjs"
-  }
+    "allowjs": true, // 允许编译javascript文件
+    "checkjs": true, // 报告javascript文件中的错误
+    "jsx": "preserve", // 指定jsx代码的生成:"preserve","react-native",or"react"
+    "declaration": true, // 生成相应的".d.ts"文件
+    "sourceMap": true, // 生成相应的".map"文件
+    "outFile": "./", // 将输出文件合并为一个文件
+    "outDir": "./", // 指定输出目录
+    "rootDir": "./", // 用来控制输出目录结构 --outDir
+    "removeComments": true, //删除编译后的所有注释
+    "noEmit": true, // 不生成输出文件
+    "importHelpers": true, // 从tslib导入扶住工具函数
+    "isolatedModules": true, // 将每个文件作为单独的模块(与'ts.transpileModule类似)
+
+    /*严格的类型检查选项*/
+    "strict": true, // 其用所有的严格类型的检查选项
+    "noImplicitAny": true, //在表达式和声明上有隐含的any类型时报错
+    "strictNullChecks": true,
+    "noImplicitThis": true, // 当this的表达式为any类型的时候,生成一个错误
+    "alwaysStrict": true, //以严格的检查每个模块,并在每个文件里加入"use strict"
+    /*额外的检查*/
+    "noUnusedLocals": true, // 有未使用的变量时,抛出错误
+    "noUnUsedParameters": true, // 有未使用的参数时,抛出错误
+    "noImplicitReturns": true, // 并不是所有函数里的代码都有返回值时，抛出错误
+    "noFallthroughCasesInSwitch": true, // 报告switch语句中的fallthrough错误（即，不允许switch的case语句贯穿）
+
+    /*模块解析选项*/
+    "moduleResolution": "node", //选择模块解析策略:'node' or 'classic'(TypeScript pre-1.6),默认是'classic'
+    "baseUrl": "./", // 用于解析非相对模块名称的基目录
+    "paths": {}, // 模块名到基于baseUrl的路径映射列表
+    "rootDirs": [], // 更稳健夹列表,其组合内容表示项目运行时的结构内容
+    "typeRoots": [], //包含类型声明的文件夹列表
+    "types": [], //需要包含的类型声明文件名列表
+    "allowSyntheticDefaultImports": true, //允许从没有设置默认导出的模块中默认导入
+
+    /* Source Map Options*/
+    "sourceRoot": "./", //指定调试器应该找到TypeScript文件而不是源文件的位置
+    "mapRoot": "./", //指定调试器应该找到映射文件而不是生成文件的位置
+    "inlineSourceMap": true, //生成单个sourcemaps文件,而不是将sourcemaps生成不同的文件
+    "inlineSources": true, //将代码与sourcemaps生成到一个文件中,要求同时设置了 --inlineSourceMap或--sourceMap属性
+
+    /* 其他选项*/
+    "experimentalDecorators": true, //启用装饰器
+    "emitDecoratorMetadata": true, // 为装饰器提供元数据的支持
+    "strictFunctionTypes": false // 禁用函数参数双向协变检查
+  },
+  /*指定编译文件或排除其他编译文件*/
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "files": ["core.ts", "sys.ts"],
+  "extends": "./config/base", // 从另一个配置文件里继承配置
+
+  //让IDE在保存文件时根据tsconfig.json重新生成文件
+  "compileOnSave": true // 支持这个特性需要Visual Studio 2015,TypeScript1.8.1以上并且安装atom-typescript插件
 }
 ```
+
+## 站在巨人肩膀上
+
+- [springleo's blog](https://lq782655835.github.io/blogs/project/ts-tsconfig.html)
