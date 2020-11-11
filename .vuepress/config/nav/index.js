@@ -10,14 +10,15 @@ module.exports = [
     icon: "reco-date",
   },
   {
-    text: "Docs",
-    icon: "reco-message",
-    items: [
-      {
-        text: "vue",
-        link: "/docs/vue/",
-      },
-    ],
+    text: "Note",
+    icon: "reco-document",
+    link: "/docs/vue/",
+    // items: [
+    //   {
+    //     text: "vue",
+    //     link: "/docs/vue/",
+    //   },
+    // ],
   },
   {
     text: "Contact",

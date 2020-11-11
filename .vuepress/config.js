@@ -1,6 +1,7 @@
-const themeConfig = require("./config/index.js");
+const themeConfig = require("./config/theme/index.js");
+const plugins = require("./config/plugins/index.js");
 module.exports = {
-  title: "李二狗的灌水博客",
+  title: "kory's blog",
   description: "",
   dest: "public",
   head: [
@@ -15,6 +16,7 @@ module.exports = {
   ],
   theme: "reco",
   themeConfig,
+  plugins,
   // locales: {
   //   "/": {
   //     lang: "zh-CN",
