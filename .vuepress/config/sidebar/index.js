@@ -9,4 +9,3 @@ module.exports = {
     { title: "Vue", children: ["vue/", "vue/vue生命周期"] },
   ],
 };
-

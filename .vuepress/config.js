@@ -17,18 +17,6 @@ module.exports = {
   theme: "reco",
   themeConfig,
   plugins,
-  // locales: {
-  //   "/": {
-  //     lang: "zh-CN",
-  //     title: "二狗同学的灌水博客",
-  //     description: "",
-  //   },
-  //   "/en/": {
-  //     lang: "en-US",
-  //     title: "kory's blog",
-  //     description: "",
-  //   },
-  // },
   markdown: {
     lineNumbers: true,
   },
