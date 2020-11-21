@@ -5,6 +5,7 @@ tags:
   - JavaScript
 categories:
   - frontEnd
+publish: false
 ---
 
 ## 编译时静态检查
@@ -29,3 +30,48 @@ import test from './test'
 3. 循环引用处理不同。ES6 module 生成指向，内容自己保证；commonJS 只输出已执行部分（说到底还是输出拷贝）
 
 > 由于动态加载非常实用，故 ts39 引用了[import()](https://github.com/tc39/proposal-dynamic-import),动态加载模块
+
+## export 几种用法
+
+`export`命令用于规定模块的对外接口
+
+```js
+// 使用export  {}不能使用import {name1, name2...}from '...'导入
+export { variable1 as name1, variable2 as name2 };
+
+// export type
+// 使用export type才是import{name1, name2}from '...'的正确用法
+export let name1;
+export function func() {}
+export class Class {}
+// export default 方式,default,as关键字
+export default Expression;
+export { name1 as default }; //等价于export default name1
+
+// 模块继承
+// 这种方法很适合重构时,帮助把大文件拆分成多个小文件
+export * from "";
+export { name1, name2 } from "...";
+export { imp1 as name1 };
+```
+
+## import 几种用法
+
+使用 export 命令定义了模块的对外接口,其他 js 文件就可以通过`import`命令加载这个模块
+
+```js
+// export default 方式
+import defaultName from "module.js";
+// import type 方式
+import { export1, export2 } from "modules";
+import { export1 as ex1, export2 as ex2 } from "...";
+import * as module from '...
+
+// 同时引入export default和export type
+import defaultName ,{export1,export2} from '...'
+import defaultName ,* as moduleName from '...'
+// 引入无输出模块
+import '...'
+```
+
+<!-- TODO:未完待补充 -->
