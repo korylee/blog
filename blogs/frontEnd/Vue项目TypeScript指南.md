@@ -167,6 +167,32 @@ type Name<T> = { [P in keyof T]: T[P] };
 type real = Name<iPoint>;
 ```
 
+### 2.11 交叉类型
+
+在 JavaScript 中,`extend`是一种非常常见的模式,在这种模式中,你可以从两个对象中创建一个新对象,新对象拥有着两个对象的所有功能。
+
+交叉类型可以让你安全的使用此种模式：
+
+```ts
+function extend<T extends object, U extends object>(
+  first: T,
+  second: U
+): T & U {
+  const result = <T & U>{};
+  for (let id in first) {
+    (<T>result[id]) = first[id];
+  }
+  for (let id in second) {
+    if (!result.hasOwnProperty(id)) (<U>result)[id] = second[id];
+  }
+  return result;
+}
+
+const x = extend({ a: "hello" }, { b: 42 });
+const a = x.a;
+const b = x.b;
+```
+
 ## 3. TypeScript Vue 使用
 
 TS 除了类型系统以及 IDE 提示外，最重要的特性之一就是可以使用装饰器。使用装饰器可以用极简的代码代替以前冗长的代码。
