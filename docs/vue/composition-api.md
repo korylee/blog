@@ -5,7 +5,7 @@ tags:
   - vue
 ---
 
-# limitation
+## limitation
 
 > ✅ Support ❌ Not Supported
 
@@ -97,14 +97,14 @@ b.list[1].count === 1; // true
 > ⚠️ 警告: `set` 和 `del` 并非 Vue 3 的一部分。由于 [Vue 2.x 响应式系统的限制](https://vuejs.org/v2/guide/reactivity.html#For-Objects)，我们在插件中提供该 API 作为添加响应式属性的一个变通方案。在 Vue 3 中，你只需要直接为属性赋值即可。
 
 ```ts
-import { reactive, set } from "@vue/composition-api";
+import { reactive, set } from '@vue/composition-api';
 
 const a = reactive({ foo: 1 });
 
 // 添加新的响应式属性
-set(a, "bar", 1);
+set(a, 'bar', 1);
 // 刪除属性并触发响应式更新
-del(a, "bar");
+del(a, 'bar');
 ```
 
 </details>
@@ -211,7 +211,7 @@ export default {
     const root = ref(null);
 
     return () =>
-      h("div", {
+      h('div', {
         ref: root,
       });
 
@@ -242,8 +242,8 @@ export default {
     });
 
     return () =>
-      h("div", {
-        ref: "root",
+      h('div', {
+        ref: 'root',
       });
 
     // 使用 JSX
@@ -255,9 +255,9 @@ export default {
 如果项目使用了 TypeScript，你还需要扩展 `SetupContext` 类型:
 
 ```ts
-import Vue from "vue";
+import Vue from 'vue';
 
-declare module "@vue/composition-api" {
+declare module '@vue/composition-api' {
   interface SetupContext {
     readonly refs: { [key: string]: Vue | Element | Vue[] | Element[] };
   }
@@ -349,9 +349,9 @@ defineComponent({
 ### 在 `data()` 中使用组合式 API
 
 <details>
-<summary>
-❌ 在 <code>data()</code> 中使用 <code>ref</code>, <code>reactive</code> 或其他组合式 API 将不会生效
-</summary>
+  <summary>
+  ❌ 在 <code>data()</code> 中使用 <code>ref</code>, <code>reactive</code> 或其他组合式 API 将不会生效
+  </summary>
 
 ```jsx
 export default {
@@ -362,8 +362,7 @@ export default {
     }
   },
 }
-````
-
+```
 </details>
 
 ### `emit` 选项
@@ -373,7 +372,7 @@ export default {
 ❌ <code>emit</code> 仅因在类型定义中对齐 Vue3 的选项而提供，<b>不会</b>有任何效果。
 </summary>
 
-```ts
+```js
 defineComponent({
   emit: {
     // 无效
@@ -390,3 +389,4 @@ defineComponent({
 ```
 
 </details>
+````
