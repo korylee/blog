@@ -11,7 +11,7 @@ categories:
 
 - Javascript 的超集，完美兼容 js
   - 从核心语法方面和类概念方面对 JavaScript 对象模型进行扩展
-  - 扩展了 js 的语法，相较于 ES6，他多了装饰器、私有属性、getter/setter、抽象类
+  - 扩展了 js 的语法，相较于 ES6，他多了装饰器、私有属性、`getter`/`setter`、抽象类
 - 强类型语言（最重要的特性之一）已于重构和理解
   - 类型系统
   - 编译时的静态类型检查
@@ -24,7 +24,8 @@ categories:
   - number
   - string
 - 特殊类型
-  - any 类型检查器不检查
+  - any 任意类型
+  - unknown 未知的类型
   - void 通常见于函数没有返回值时
   - null
   - undefined
@@ -38,18 +39,18 @@ categories:
 
   ```ts
   let name: string | number = 123;
-  let names: (string | number)[] = [123, "123"];
-  let names: Array<string | number> = [123, "123"];
-  let funcs: Array<() => string> = [() => "123"];
+  let names: (string | number)[] = [123, '123'];
+  let names: Array<string | number> = [123, '123'];
+  let func: Array<() => string> = [() => '123'];
   ```
 
   - 元组类型
   - 枚举 enum 对 JavaScript 标准数据类型的一个补充
   - 接口 interface
-    - ?:可选属性
+    - ?: 可选属性
     - readonly 只读属性
     - 额外的属性检查
-    - 内联类型注解 `let name:{first:string;second:string;}`
+    - 内联类型注解 `let name: {first:string; second:string;}`
   - 函数
   - 类（和 ES6 类似，但早于 ES6）
 
@@ -93,7 +94,7 @@ interface Person {
 ### 2.4 元组
 
 ```ts
-let tom: [string, number] = ["tom", 123];
+let tom: [string, number] = ['tom', 123];
 ```
 
 ### 2.5 可选类型
@@ -174,10 +175,7 @@ type real = Name<iPoint>;
 交叉类型可以让你安全的使用此种模式：
 
 ```ts
-function extend<T extends object, U extends object>(
-  first: T,
-  second: U
-): T & U {
+function extend<T extends object, U extends object>(first: T, second: U): T & U {
   const result = <T & U>{};
   for (let id in first) {
     (<T>result[id]) = first[id];
@@ -188,10 +186,123 @@ function extend<T extends object, U extends object>(
   return result;
 }
 
-const x = extend({ a: "hello" }, { b: 42 });
+const x = extend({ a: 'hello' }, { b: 42 });
 const a = x.a;
 const b = x.b;
 ```
+
+### 类型兼容性
+
+typescript 的子类型是基于`结构子类型`的,只要结构兼容,就是子类型(duck type)
+
+```ts
+class Point {
+  x: number;
+}
+function getPointX(point: Point) {
+  return point.x;
+}
+class Point2 {
+  x: number;
+}
+let point2 = new Point2();
+getPointX(point2);
+```
+
+#### 对象子类型
+
+子类型中必须包含原类型所有的数学和方法
+
+```ts
+function getPointX(point: { x: number }) {
+  return point.x;
+}
+const point = { x: 1, y: '2' };
+getPointX(point); // OK
+```
+
+::: warning
+
+如果直接传入一个对象字面量是会报错的:
+
+```ts
+function getPointX(point: { x: number }) {
+  return point.x;
+}
+getPointX({ x: 1, y: '2' });
+```
+
+这里 ts 中的另一个特性,叫做`excess property check`, 当传入的参数是一个对象字面量时,会进行**额外属性检查**。
+:::
+
+#### 函数子类型
+
+介绍函数子类型前先介绍一下**逆变**与协变的概念，**逆变**与**协变**并不是 TS 中独有的概念，在其他的静态语言中也有相关理念
+
+在介绍之前，先假设一个问题，约定如下标记
+
+- `A ≼ B` 表示 A 是 B 的子类型， A 包含 B 的所有属性和方法
+- `A => B` 表示以 A 为参数，B 为返回值的方法。`(param: A) => B`
+
+如果我们现在有两个类型`Animal`、`Dog`、`WangCai`,那么肯定存在下面的关系
+
+```
+Wang ≼ Dog ≼ Animal // 即旺财属于狗属于动物
+```
+
+**问题**： 以下哪种类型是`Dog => Dog`的子类呢？
+
+- `WangCai => WangCai`
+- `WangCai => Animal`
+- `Animal => Animal`
+- `Animal => WangCai`
+  **从代码来看解答**
+
+```ts
+class Animal {
+  sleep: Function;
+}
+class Dog extends Animal {
+  bark: Function;
+}
+class WangCai extends Dog {
+  dance: Function;
+}
+function getDogName(cb: (dog: Dog) => Dog) {
+  const dog = cb(new Dog());
+  dog.bark();
+}
+// 对于入参来说，WangCai是Dog的子类，Dog类上没有dance方法，产生异常
+// 对于出参来说，WangCai类继承了Dog类，肯定会有bark方法
+getDogName((wangcai: WangCai) => {
+  wangcai.dance();
+  return new Animal();
+});
+// 对于入参来说，Animal类是Dog的父类，Dog类肯定有sleep方法
+// 对于出参来说，Animal类上没有bark方法，产生异常
+getDogName((wangcai: WangCai) => {
+  wangcai.dance();
+  return new Animal();
+});
+
+// 对于入参来说，Animal 类是 Dog 的父类，Dog 类肯定有 sleep 方法。
+// 对于出参来说，WangCai 类继承了 Dog 类，肯定会有 bark 方法
+getDogName((animal: Animal) => {
+  animal.sleep();
+  return new WangCai();
+});
+
+// 对于入参来说，Animal 类是 Dog 的父类，Dog 类肯定有 sleep 方法。
+// 对于出参来说，Animal 类上没有 bark 方法, 产生异常。
+getDogName((animal: Animal) => {
+  animal.sleep();
+  return new Animal();
+});
+```
+
+可以看到只有`Animal => WangCai`才是`Dog => Dog`的子类型，可以得到一个结论，对于函数类型来说，函数参数的类型的兼容是相反的，我们称之为`逆变`，返回值的类型兼容是正向的，称之为`协变`。
+
+<!-- TODO -->
 
 ## 3. TypeScript Vue 使用
 
@@ -206,8 +317,8 @@ TS 除了类型系统以及 IDE 提示外，最重要的特性之一就是可以
 - createDecorator 官方提供的创建装饰器函数，vue-component-decorator/vuex-class 库中的各个属性/方法装饰器底层都是调用该函数
 
 ```ts
-import vue from "vue";
-import Component from "vue-class-component";
+import vue from 'vue';
+import Component from 'vue-class-component';
 @Component({
   props: { propMessage: String },
   component: {},
@@ -215,8 +326,8 @@ import Component from "vue-class-component";
   directive: {},
 })
 export default class App extends Vue {
-  name: string = "Simon Zhang";
-  helloMsg = "hello," + this.propMessage;
+  name: string = 'Simon Zhang';
+  helloMsg = 'hello,' + this.propMessage;
   // computed
   get MyName(): string {
     return `my name is ${this.name}`;
@@ -280,18 +391,18 @@ export default class YourComponent extends Vue {
 - namespace
 
 ```ts
-import Vue from "vue";
-import Component from "vue-class-component";
-import { State, Getter, Action, Mutation, namespace } from "vuex-class";
-const someModule = namespace("path/to/module");
+import Vue from 'vue';
+import Component from 'vue-class-component';
+import { State, Getter, Action, Mutation, namespace } from 'vuex-class';
+const someModule = namespace('path/to/module');
 @Component
 export class MyComp extends Vue {
-  @State("foo") stateFoo;
+  @State('foo') stateFoo;
   @State((state) => state.bar) stateBar;
-  @Getter("foo") getterFoo;
-  @Action("foo") actionFoo;
-  @Mutation("foo") mutationFoo;
-  @someModule.Getter("foo") moduleGetterFoo;
+  @Getter('foo') getterFoo;
+  @Action('foo') actionFoo;
+  @Mutation('foo') mutationFoo;
+  @someModule.Getter('foo') moduleGetterFoo;
 
   // If the argument is omitted, use the property name
   // for each state/getter/action/mutation type
@@ -361,19 +472,19 @@ declare class Person {
 #### 方法一： 文件位置随意，源码中指定`declare module xxx`
 
 ```ts
-declare module "abcd" {
+declare module 'abcd' {
   export let a: number;
   export function b(): number;
   export namespace c {
     let cd: string;
   }
 }
-let aaa = require("abcd");
+let aaa = require('abcd');
 aaa.b();
 ```
 
 ```ts
-declare module "app" {
+declare module 'app' {
   // 导出是文件本身
   function aaa(some: number): number;
   export = aaa;
@@ -405,8 +516,8 @@ ts 提供了一个语法`declare module`，它可以用来扩展原有模块的�
 
 ```ts
 // 如果是需要扩展原有模块的话，需要类型声明文件中先引用原有模块，再使用declare module扩展原有模块
-import Vue from "vue";
-declare module "vue/types/vue" {
+import Vue from 'vue';
+declare module 'vue/types/vue' {
   interface Vue {
     $openDialog: Function;
     $closeDialog: Function;
@@ -434,8 +545,8 @@ declare module "vue/types/vue" {
 使用 ts 书写后缀时，自动生成同时，也可以手动设置 d.ts 文件
 
 ```ts
-declare module "xxx";
-export * from "../lib";
+declare module 'xxx';
+export * from '../lib';
 ```
 
 ## 5 tsconfig.json
@@ -448,9 +559,9 @@ TypeScript 和 ES6 引入了 Class 的概念，同时在[stage 2 proposal](https
 
 ```ts
 function f() {
-  console.log("f();evaluated");
+  console.log('f();evaluated');
   return function(target, propertyKey: string, descriptor: PropertyDescriptor) {
-    console.log("fn() called");
+    console.log('fn() called');
   };
 }
 ```
