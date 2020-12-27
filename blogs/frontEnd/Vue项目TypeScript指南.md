@@ -19,103 +19,6 @@ categories:
 
 ## 2. TypeScript 类型
 
-- 原始类型
-  - boolean
-  - number
-  - string
-- 特殊类型
-  - any 任意类型
-  - unknown 未知的类型
-  - void 通常见于函数没有返回值时
-  - null
-  - undefined
-  - object 除 number，string，boolean，symbol，null 或 undefined 之外的的类型
-- 数组
-  - T[]
-  - `Array<T>`泛型写法
-- 补充
-
-  - 联合类型 属性为多种类型之一
-
-  ```ts
-  let name: string | number = 123;
-  let names: (string | number)[] = [123, '123'];
-  let names: Array<string | number> = [123, '123'];
-  let func: Array<() => string> = [() => '123'];
-  ```
-
-  - 元组类型
-  - 枚举 enum 对 JavaScript 标准数据类型的一个补充
-  - 接口 interface
-    - ?: 可选属性
-    - readonly 只读属性
-    - 额外的属性检查
-    - 内联类型注解 `let name: {first:string; second:string;}`
-  - 函数
-  - 类（和 ES6 类似，但早于 ES6）
-
-### 2.1 Interface & type
-
-两者基本没什么差别，平时开发能用 interface 尽量用
-type(类型别名)会给类型起一个新的名字，type 可以作用于原始值（基本类型） ，联合类型，元组以及其他任何你需要手写的类型
-
-```ts
-interface Person {
-  name: string;
-  age?: number;
-  [propName: string]: any;
-}
-type Person = {
-  name: string;
-  age: number;
-};
-type Animal = Person | string;
-```
-
-### 2.2 联合声明
-
-```ts
-interface Person {
-  name: string;
-  age: number | string;
-}
-```
-
-### 2.3 数组声明
-
-```ts
-interface Person {
-  name: string;
-  age: number;
-  schools: string[];
-}
-```
-
-### 2.4 元组
-
-```ts
-let tom: [string, number] = ['tom', 123];
-```
-
-### 2.5 可选类型
-
-```ts
-interface Person {
-  name: string;
-  age?: number;
-}
-```
-
-### 2.6 任意类型
-
-```ts
-interface Person {
-  name: string;
-  age: number;
-  [key: string]: string;
-}
-```
-
 ### 2.7 简写类型
 
 ```ts
@@ -168,30 +71,7 @@ type Name<T> = { [P in keyof T]: T[P] };
 type real = Name<iPoint>;
 ```
 
-### 2.11 交叉类型
-
-在 JavaScript 中,`extend`是一种非常常见的模式,在这种模式中,你可以从两个对象中创建一个新对象,新对象拥有着两个对象的所有功能。
-
-交叉类型可以让你安全的使用此种模式：
-
-```ts
-function extend<T extends object, U extends object>(first: T, second: U): T & U {
-  const result = <T & U>{};
-  for (let id in first) {
-    (<T>result[id]) = first[id];
-  }
-  for (let id in second) {
-    if (!result.hasOwnProperty(id)) (<U>result)[id] = second[id];
-  }
-  return result;
-}
-
-const x = extend({ a: 'hello' }, { b: 42 });
-const a = x.a;
-const b = x.b;
-```
-
-### 类型兼容性
+## 类型兼容性
 
 typescript 的子类型是基于`结构子类型`的,只要结构兼容,就是子类型(duck type)
 
@@ -209,7 +89,7 @@ let point2 = new Point2();
 getPointX(point2);
 ```
 
-#### 对象子类型
+### 对象子类型
 
 子类型中必须包含原类型所有的数学和方法
 
@@ -235,7 +115,7 @@ getPointX({ x: 1, y: '2' });
 这里 ts 中的另一个特性,叫做`excess property check`, 当传入的参数是一个对象字面量时,会进行**额外属性检查**。
 :::
 
-#### 函数子类型
+### 函数子类型
 
 介绍函数子类型前先介绍一下**逆变**与协变的概念，**逆变**与**协变**并不是 TS 中独有的概念，在其他的静态语言中也有相关理念
 
@@ -302,145 +182,320 @@ getDogName((animal: Animal) => {
 
 可以看到只有`Animal => WangCai`才是`Dog => Dog`的子类型，可以得到一个结论，对于函数类型来说，函数参数的类型的兼容是相反的，我们称之为`逆变`，返回值的类型兼容是正向的，称之为`协变`。
 
-<!-- TODO -->
+协变与逆变的例子只说明了函数参数只有一个时的情况,如果函数参数有多个时该如何区分?
 
-## 3. TypeScript Vue 使用
-
-TS 除了类型系统以及 IDE 提示外，最重要的特性之一就是可以使用装饰器。使用装饰器可以用极简的代码代替以前冗长的代码。
-
-### 3.1 vue-class-component
-
-![vue-class-component](https://github.com/vuejs/vue-class-component)是官方维护的 TypeScript 装饰器，他是基于类的 API，Vue 对其做到完美兼容。
-
-- Component 官方提供的 Component 装饰器
-- mixins
-- createDecorator 官方提供的创建装饰器函数，vue-component-decorator/vuex-class 库中的各个属性/方法装饰器底层都是调用该函数
+其实函数的参数可以转化为`Tuple`的类型兼容性
 
 ```ts
-import vue from 'vue';
-import Component from 'vue-class-component';
-@Component({
-  props: { propMessage: String },
-  component: {},
-  filter: {},
-  directive: {},
-})
-export default class App extends Vue {
-  name: string = 'Simon Zhang';
-  helloMsg = 'hello,' + this.propMessage;
-  // computed
-  get MyName(): string {
-    return `my name is ${this.name}`;
-  }
-  mounted() {
-    this.sayHello();
-  }
-  // methods
-  sayHello() {
-    alert(`Hello ${this.name}`);
-  }
+type Tuple1 = [string, number];
+type Tuple2 = [string, number, boolean];
+
+let tuple1: Tuple1 = ['1', 1];
+let tuple2: Tuple2 = ['1', 1, true];
+let t1: Tuple1 = tuple2; //ok
+let t2: Tuple2 = tuple1; //error
+```
+
+可以看到`Tuple1 => Tuple2`,即长度大的时长度小的子类型,再由于函数参数的逆变特性,所以函数参数少的可以赋值给参数多的(参数从前往后需一一对应),从数组的 forEach 方法就可以看出来
+
+```ts
+[1, 2].forEach((item, index) => console.log(item));
+
+[1, 2].forEach((item, index, arr, other) => console.log(item));
+```
+
+## 高级类型
+
+### 联合类型和交叉类型
+
+联合类型(union type) 表示多种类型的"或"关系
+
+```ts
+function genLen(x: string | any[]) {
+  return x.length;
 }
 ```
 
-### 3.2 vue-property-decorator
-
-![vue-property-decorator](https://github.com/kaorun343/vue-property-decorator)完全基于 vue-class-component，但它扩展了很多的特性，极大的方便了 Vue 的写法，它包括 7 个装饰器以及 1 个函数
-
-- @Prop
-- @Watch
-- @Component(provide by vue-class-component)
-- @Emit
-- @Model
-- @inject
-- @provide
-- @Mixins(the helper function named mixins provided by vue-class-component)
+交叉类型表示多种类型的"与"关系
 
 ```ts
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-@Component
-export default class YourComponent extends Vue {
-  @Prop(Number) propA!: number;
-  @Prop({ default: "default value" }) propB!: string;
-  @Prop([string, boolean]) propC!: string | boolean;
-  @Watch('person',{immediate:true,deep:true})
-  onPersonChanged(val:Person.oldValue:person){}
-  /**
-   * equal
-   * watch:{
-   * 'person':[{handler:'onpPersonChanged', immediate:true, deep:true}]}
-  */
- @Emit()
- returnValue(){
-   return 10
- }
- /**equal
-  * return Value(){
-  * this.$emits('return-value',10)}
- */
+interface Person {
+  name: string;
+  age: number;
 }
+interface Animal {
+  name: string;
+  color: string;
+}
+const x: Person & Animal = {
+  name: 'x',
+  age: 1,
+  color: 'red',
+};
 ```
 
-### 3.3 Vuex-class
+在 JavaScript 中,`extend`是一种非常常见的模式,在这种模式中,你可以从两个对象中创建一个新对象,新对象拥有着两个对象的所有功能。
 
-[vuex-class](https://github.com/ktsn/vuex-class)是基于 vue-class-component 对 vuex 提供的装饰器
-
-- @State
-- @Getter
-- @Mutation
-- @Action
-- namespace
+交叉类型可以让你安全的使用此种模式：
 
 ```ts
-import Vue from 'vue';
-import Component from 'vue-class-component';
-import { State, Getter, Action, Mutation, namespace } from 'vuex-class';
-const someModule = namespace('path/to/module');
-@Component
-export class MyComp extends Vue {
-  @State('foo') stateFoo;
-  @State((state) => state.bar) stateBar;
-  @Getter('foo') getterFoo;
-  @Action('foo') actionFoo;
-  @Mutation('foo') mutationFoo;
-  @someModule.Getter('foo') moduleGetterFoo;
-
-  // If the argument is omitted, use the property name
-  // for each state/getter/action/mutation type
-  @State foo;
-  @Getter bar;
-  @Action baz;
-  @Mutation qux;
-
-  created() {
-    this.stateFoo; // -> store.state.foo
-    this.stateBar; // -> store.state.bar
-    this.getterFoo; // -> store.getters.foo
-    this.actionFoo({ value: true }); // -> store.dispatch('foo', { value: true })
-    this.mutationFoo({ value: true }); // -> store.commit('foo', { value: true })
-    this.moduleGetterFoo; // -> store.getters['path/to/module/foo']
+function extend<T extends object, U extends object>(first: T, second: U): T & U {
+  const result = <T & U>{};
+  for (let id in first) {
+    (<T>result[id]) = first[id];
   }
+  for (let id in second) {
+    if (!result.hasOwnProperty(id)) (<U>result)[id] = second[id];
+  }
+  return result;
+}
+
+const x = extend({ a: 'hello' }, { b: 42 });
+const a = x.a;
+const b = x.b;
+```
+
+#### 使用联合类型表示枚举
+
+```ts
+type Position = 'UP' | 'DOWN' | 'LEFT';
+const position: Position = 'UP';
+```
+
+> 可以避免 enumerate 入侵了运行时
+
+### 类型保护
+
+ts 初学者很容易写出下面的代码:
+
+```ts
+function isString(value){
+  return Object.prototype.toString.call(value) === '[object String]
+}
+function f(x:string|number){
+  if(isString(x)) return x.length //error 类型string|number 上不存在属性"length"
+  ...
 }
 ```
 
+如何让 ts 判断出上下文的类型呢
+
+1. 使用 ts 的`is`关键词
+
+```ts
+function isString(value:unknown) :value is string {
+  return Object.prototype.toString.call(value) === '[object String]
+}
+```
+
+2. typeof 关键词
+   在 ts 中,**代码实现**中的 typeof 关键词能够帮助 ts 判断出变量的基本类型
+
+   ```ts
+   function f(x: string | number) {
+     if (typeof x === 'string') return x.length;
+   }
+   ```
+
+3. instanceof 关键词
+   在 ts 中, instanceof 关键词能够帮助 ts 判断出构造函数的类型
+
+4. 针对 null 和 undefined 的类型保护
+   在条件判断时,ts 会自动对 null 和 undefined 进行类型保护
+   ```ts
+   function f(x?: string) {
+     if (x) return x.length;
+   }
+   ```
+5. 针对 null 和 undefined 的类型断言
+   如果当已经知道的参数不为空,可以用`!`来手动标记
+   ```ts
+   function f(x?: string) {
+     return x!.length;
+   }
+   ```
+
+### typeof 关键词
+
+`typeof` 关键词除了做类型保护,还可以从**实现**推出**类型**。
 ::: warning 注意
-使用 vuex-class 等库时，需要再 tsconfig.json 配置中打开 TypeScript 装饰器。建议再工程目录中设置如下三个配置：`experimentalDecorator`、`strictFunctionTypes`、`strictPropertyInitialization`
-
-```json
-{
-  "compilerOptions": {
-    // 启用装饰器，需要在vue-class-component及vuex-class需要开启此选项
-    "experimentalDecorator": true,
-    // 启用vuex-class 需要关闭此选项
-    "strictFunctionTypes": false,
-    // 是否必须要有初始值。vuex-class最好开启此项，不然所有的@state等装饰器都需要设置初始值。设置值为false
-    "strictPropertyInitialization": false
-  }
-}
-```
-
+此时的 `typeof`是一个类型关键词,只可以用在类型语法中
 :::
 
-## 4. TypeScript 描述文件
+```ts
+function fn(x: string) {
+  return x.length;
+}
+const obj = { x: 1, y: '2' };
+type T0 = typeof fn; //(x:string) => number
+type T1 = typeof obj; // {x:number, y: string}
+```
+
+### keyof 关键词
+
+`keyof`也是一个**类型关键词**, 可以用来区的一个对象接口的所有的`key`值:
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+type PersonAttrs = keyof Person; // 'name'| 'age'
+```
+
+### in 关键词
+
+`in`也是一个**类型关键词**, 可以对联合类型进行遍历,也可以只用在`type`关键字下面。
+
+```ts
+type Person = { [key in 'name' | 'age']: number }; // {name:number, age:number}
+```
+
+### []操作符
+
+使用`[]`操作符可以进行索引访问， 也是一个**类型关键词**
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+type x = Person['name']; // x is string
+```
+
+### 小栗子
+
+写一个类型复制的类型工具
+
+```ts
+type Copy<T> = {
+  [key in keyof T]: T[key];
+};
+interface Person {
+  name: string;
+  age: number;
+}
+type Person1 = Copy<Person>;
+```
+
+## 泛型
+
+泛型相当于一个类型的参数,在 ts 中,泛型可以用在`类`、`接口`、`方法`、`类型`别名等实体中
+
+### 小试牛刀
+
+```ts
+function createList<T>(): T[] {
+  return [] as T[];
+}
+```
+
+> 有了泛型的支持,createList 方法可以传入一个类型,返回有类型的数组,而不是一个 any[]
+
+### 泛型约束
+
+如果我们希望 createList 函数只能生成指定的类型数组,可以使用`extends`关键词来约束泛型的范围和形状
+
+```ts
+type Lengthwise = { length: number };
+
+function createList<T extends number | Lengthwise>(): T[] {
+  return [] as T[];
+}
+const numberList = createList<number>(); // ok
+const stringList = createList<string>(); // ok
+const arrayList = createList<any[]>(); //ok
+const booList = createList<boolean>(); //error
+```
+
+> `any[]` 十一个数组类型,数组类型是有 length 属性的,所以 ok。`string`类型也是有 length 属性的，所以 ok。但是`boolean`就不能通过这个约束了
+
+### 条件控制
+
+`extends`除了做约束类型,还可以做条件控制,相当于与一个三元运算符,只不过针对**类型**的
+
+**表达式**: `T extends U ? X : Y`
+**含义**: 如果 T 可以被分配给 U,则返回 X,否则返回 Y。一般条件下，如果 T 是 U 的值类型，则认为 T 可以分配给 U
+
+```ts
+type IsNumber<T> = T extends number ? true : false;
+type x = IsNumber<string>; // false
+```
+
+### 映射类型
+
+映射类型相当于一个**类型的函数**，可以做一些**类型运算**，输入一个类型，输出另一个类型
+
+#### 几个内置的映射类型
+
+```ts
+// 每个属性都变成可选
+type Partial<T> = {
+  [P in typeof T]?: T[P];
+};
+// 每个属性都变成可读
+type Readinly<T> = {
+  readonly [P in keyof T]: T[P];
+};
+// 选择对象中的某些属性
+type Pick<T, K extends keyof T> = {
+  [P in K]: T[P];
+};
+```
+
+typescript 2.8 在`lib.d.ts`中内置了几个映射类型
+
+- `Partial<T>` --将`T`中的所有属性变成可选
+- `Readonly<T>` --将`T`中的所有属性变成可读
+- `Pick<T,U>` -- 选择`T`中可以赋值给`U`的类型
+- `Exclude<T,U> --从`T`中剔除可以赋值给`U`的类型
+- `RenturnType<T>` --获得函数返回值类型
+- `InstanceType<T>` -- `获得构造函数类型的实例类型
+
+```ts
+interface ApiRes {
+  code: string;
+  flag: string;
+  message: string;
+  data: object;
+  success: boolean;
+  error: boolean;
+}
+type IApiRes = Pick<ApiRes, 'code' | 'flag' | 'message' | 'data'>;
+// {
+//   code: string;
+//   flag: string;
+//   message: string;
+//   data: object;
+// }
+```
+
+#### extends 条件分发
+
+对于`T extends U ? X : Y`来说,还存在一个特性,当 T 是一个联合类型时,会进行条件分发.
+
+```ts
+type Union = string | number;
+
+type isNumber<T> = T extends number ? 'isNumber' : 'notNumber';
+type UnionType = isNumber<Union>; //'notNumber'| 'isNumber'
+```
+
+实际上,extens 运算会变成如下形式
+
+```ts
+(string extends number? 'isNumber': 'NotNumber')|(number extends number? 'isNumber': 'NotNumber')
+```
+
+`Extract`就是基于此类型,再配合`never`幺元的特性实现的
+
+<!-- TODO 待续 -->
+
+```ts
+type;
+```
+
+## TypeScript 描述文件
 
 typescript 的描述文件，以 d.ts 结尾的文件名。大部分编辑器能识别 d.ts 文件，当你写 js 代码的时候给你智能提示。declare 全局提示，是的 ts 可以找到并识别出
 
@@ -449,7 +504,7 @@ typescript 的描述文件，以 d.ts 结尾的文件名。大部分编辑器能
 - 与该 npm 包绑定在一起。判断依据时 package.json 中有 types 字段，或者有一个 index.d.ts 声明文件。这种模式不需要额外安装其他包，是最为推荐的，所以自己在创建 npm 包的时候，最好也将声明文件与 npm 包绑定在一起
 - 发布到@types 里。我们只需要安装以下对应的@types 包就知道是否存在该声明文件。这种模式一般是 i 由于 npm 包的维护者没有提供声明文件，所以只能由其他人将生命文件发布到@types 里了
 
-### 4.1 全局变量 - 应用端补充
+### 全局变量 - 应用端补充
 
 针对的是在应用端，`无import写法 + 补充npm包的全局变量`，(通过`<script>`标签引入第三方库，注入全局变量)
 
@@ -464,7 +519,7 @@ declare class Person {
 }
 ```
 
-### 4.2 npm 包 - 应用端补充
+### npm 包 - 应用端补充
 
 针对的是在应用端，`import写法 + 补充npm包的变量`
 核心：`只有在声明文件中使用export导出，然后再使用import导入后，才会用到这些类型声明`
@@ -509,7 +564,7 @@ d.ts 文件(A.d.ts)文件放到哪个目录里，如果是模块化的话就放�
 ----以上说的是未在 tsconfig.json 文件里面特殊配置过
 :::
 
-### 4.3 扩展 npm 包 - 应用端补充
+### 扩展 npm 包 - 应用端补充
 
 有时通过 import 导入一个插件模板，可以改变另一个原有模块的结构。此时如果原有模块已经有了类型声明文件，而插件模板没有类型声明文件（最常见的定义是`Vue.prototype.$xxx`），就会导致类型不完整，缺少部分的类型。
 ts 提供了一个语法`declare module`，它可以用来扩展原有模块的类型
@@ -529,7 +584,7 @@ declare module 'vue/types/vue' {
 在全局变量的声明文件中，是不允许出现 import,export 关键字。一旦出现了，那么他就会被视为一个 npm 库或 UMD 库，就不再是全局变量的声明文件了
 :::
 
-### 4.4 发布 npm 包-npm 源码端补充
+### 发布 npm 包-npm 源码端补充
 
 1. [自动生成声明文件](https://ts.xcatliu.com/basics/declaration-files.html#%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E5%A3%B0%E6%98%8E%E6%96%87%E4%BB%B6)
 
@@ -588,7 +643,7 @@ export default class Home extends Vue {
 
 `有隐含的any类型时报错`。boolean 值,默认值为 false
 
-### 4. target
+### target
 
 `指定编译的ECMAScript目标版本`.枚举值"ES3","ES5","ES6/2015","ES2016","ES2017","ESNext"。默认值“ES3”
 
@@ -625,11 +680,10 @@ node 模块解析方式
 
 1. /root/src/moduleB.ts
 2. /root/src/moduleB.tsx
-3. /root/src/moduleB.d.ts
-4. /root/src/moduleB.package.json(if it specifies a "types" property)
-5. /root/src/moduleB/index.ts
-6. /root/src/moduleB/index.tsx
-7. /root/src/moduleB/index.d.ts
+3. /root/src/moduleB.d.ts /root/src/moduleB.package.json(if it specifies a "types" property)
+4. /root/src/moduleB/index.ts
+5. /root/src/moduleB/index.tsx
+6. /root/src/moduleB/index.d.ts
 
 :::
 
@@ -675,7 +729,7 @@ node 模块解析方式
 
 > 可以指定“types”：[]来禁用自动引入@types 包
 
-### 14. files、include 和 exclude
+### files、include 和 exclude
 
 `编译文件包含哪些文件以及排除哪些文件`
 
