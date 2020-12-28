@@ -17,58 +17,57 @@ categories:
   - 编译时的静态类型检查
 - 强大的 IDE 支持，VSCode 前端必备
 
-## 2. TypeScript 类型
+## 基础类型
 
-### 2.7 简写类型
+### `any` 和 `unknown`的区别
+
+- `any`:任意类型
+- `unknown`:未知的类型
+
+任何类型都能分配给`unknown`,但`unknown`不能分配给其他基本类型, 而`any`啥都能分配和被分配。
 
 ```ts
-interface Person {
-  name: string;
-  age: number;
-  attr: { label: string; value: string; color?: string; tips?: string };
+let foo: unknown;
+
+foo = true;
+foo = 123;
+
+foo.toFixed(2); // error
+let foo1: string = foo; // error
+```
+
+### unknown 的正确用法
+
+我可以用不同的方式将`unknown`类型缩小为更具体的类型范围：
+
+```ts
+function getLen(val: unknown): number {
+  if (typeof value === 'string') return value.length;
+  return 0;
 }
 ```
 
-### 2.8 泛型
+> 这个过程就是类型收窄（type narrowing）
+
+### never
+
+`never`一般表示无法达到的类型。在新的 typescript3.7 中，下面的代码会报错
 
 ```ts
-export interface PagingResponseMsg<T>{
-  code: number;
-  message: string;
-  data:T;
-  totalCount?:number；
-  pageNow?: number;
-  pageSize?: number;
-  pageCount?:number
+//never 用户控制流分析
+function neverReach(): never {
+  throw new Error('an error');
 }
+const x = 2;
+neverReach();
+
+x.toFixed(2); // x is unreachable
 ```
 
-### 2.9 keyof
+`never`还可以由于联合类型的**幺元**
 
 ```ts
-const todo = {
-  id: 1,
-  name: "james",
-};
-type K = keyof todo; //'id' | 'name
-
-// K是T返回的union类型中的一种
-// 并且返回值为K[T]类型
-function prop<T, K extends keyof T>(obj:T,key: K){
-  return obj[key];
-}
-prop(todo, 'name)
-```
-
-### 2.10 `key in keyof T`
-
-```ts
-interface iPoint {
-  x: number;
-  y: number;
-}
-type Name<T> = { [P in keyof T]: T[P] };
-type real = Name<iPoint>;
+type To = string | number | never; // To is string | number
 ```
 
 ## 类型兼容性
@@ -429,12 +428,20 @@ type x = IsNumber<string>; // false
 #### 几个内置的映射类型
 
 ```ts
+// 用来生成一个属性为K,类型为T的类型集合
+type Record<K extends keyof any, T> = {
+  [P in T]: T;
+};
 // 每个属性都变成可选
 type Partial<T> = {
   [P in typeof T]?: T[P];
 };
+// 每个属性都变为必选
+type Required<T> = {
+  [P in keyof T]-?: T[P];
+};
 // 每个属性都变成可读
-type Readinly<T> = {
+type Readonly<T> = {
   readonly [P in keyof T]: T[P];
 };
 // 选择对象中的某些属性
@@ -448,7 +455,8 @@ typescript 2.8 在`lib.d.ts`中内置了几个映射类型
 - `Partial<T>` --将`T`中的所有属性变成可选
 - `Readonly<T>` --将`T`中的所有属性变成可读
 - `Pick<T,U>` -- 选择`T`中可以赋值给`U`的类型
-- `Exclude<T,U> --从`T`中剔除可以赋值给`U`的类型
+- `Exclude<T,U>` --从`T`中**剔除**所有包含的`U`属性
+- `Extract<T,U>` --从`T`中**提取出**所有包含的 `U` 属性值
 - `RenturnType<T>` --获得函数返回值类型
 - `InstanceType<T>` -- `获得构造函数类型的实例类型
 
@@ -489,10 +497,19 @@ type UnionType = isNumber<Union>; //'notNumber'| 'isNumber'
 
 `Extract`就是基于此类型,再配合`never`幺元的特性实现的
 
-<!-- TODO 待续 -->
+```ts
+type Exclude<T, K> = T extends K ? never : T;
+type Extract<T, U> = T extends U ? T : never;
+type T1 = Exclude<string | number | boolean, string | boolean>; // number
+type T2 = Extract<string | number | boolean, string | boolean>; // string |  boolean
+```
+
+#### `infer` 关键词
+
+`infer` 可以对运算中心的类型进行存储,内置的`ReturnType` 就是基于此特性实现的
 
 ```ts
-type;
+type ReturnType<T> = T extends (...args: any) => infer R ? R : never;
 ```
 
 ## TypeScript 描述文件
