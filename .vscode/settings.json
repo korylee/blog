@@ -2,9 +2,13 @@
   "cSpell.words": [
     "Weakmap",
     "commitlint",
+    "instanceof",
+    "keyof",
     "proto",
     "reco",
-    "vuepress"
+    "typeof",
+    "vuepress",
+    "vuex"
   ],
   "cSpell.enableFiletypes": [
     "ignore",

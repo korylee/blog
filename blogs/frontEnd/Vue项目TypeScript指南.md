@@ -489,7 +489,7 @@ type isNumber<T> = T extends number ? 'isNumber' : 'notNumber';
 type UnionType = isNumber<Union>; //'notNumber'| 'isNumber'
 ```
 
-实际上,extens 运算会变成如下形式
+实际上,extends 运算会变成如下形式
 
 ```ts
 (string extends number? 'isNumber': 'NotNumber')|(number extends number? 'isNumber': 'NotNumber')
