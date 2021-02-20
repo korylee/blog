@@ -42,7 +42,7 @@ let foo1: string = foo; // error
 
 ```ts
 function getLen(val: unknown): number {
-  if (typeof value === 'string') return value.length;
+  if (typeof value === "string") return value.length;
   return 0;
 }
 ```
@@ -56,7 +56,7 @@ function getLen(val: unknown): number {
 ```ts
 //never 用户控制流分析
 function neverReach(): never {
-  throw new Error('an error');
+  throw new Error("an error");
 }
 const x = 2;
 neverReach();
@@ -96,7 +96,7 @@ getPointX(point2);
 function getPointX(point: { x: number }) {
   return point.x;
 }
-const point = { x: 1, y: '2' };
+const point = { x: 1, y: "2" };
 getPointX(point); // OK
 ```
 
@@ -108,7 +108,7 @@ getPointX(point); // OK
 function getPointX(point: { x: number }) {
   return point.x;
 }
-getPointX({ x: 1, y: '2' });
+getPointX({ x: 1, y: "2" });
 ```
 
 这里 ts 中的另一个特性,叫做`excess property check`, 当传入的参数是一个对象字面量时,会进行**额外属性检查**。
@@ -189,8 +189,8 @@ getDogName((animal: Animal) => {
 type Tuple1 = [string, number];
 type Tuple2 = [string, number, boolean];
 
-let tuple1: Tuple1 = ['1', 1];
-let tuple2: Tuple2 = ['1', 1, true];
+let tuple1: Tuple1 = ["1", 1];
+let tuple2: Tuple2 = ["1", 1, true];
 let t1: Tuple1 = tuple2; //ok
 let t2: Tuple2 = tuple1; //error
 ```
@@ -227,9 +227,9 @@ interface Animal {
   color: string;
 }
 const x: Person & Animal = {
-  name: 'x',
+  name: "x",
   age: 1,
-  color: 'red',
+  color: "red",
 };
 ```
 
@@ -238,7 +238,10 @@ const x: Person & Animal = {
 交叉类型可以让你安全的使用此种模式：
 
 ```ts
-function extend<T extends object, U extends object>(first: T, second: U): T & U {
+function extend<T extends object, U extends object>(
+  first: T,
+  second: U
+): T & U {
   const result = <T & U>{};
   for (let id in first) {
     (<T>result[id]) = first[id];
@@ -249,7 +252,7 @@ function extend<T extends object, U extends object>(first: T, second: U): T & U 
   return result;
 }
 
-const x = extend({ a: 'hello' }, { b: 42 });
+const x = extend({ a: "hello" }, { b: 42 });
 const a = x.a;
 const b = x.b;
 ```
@@ -257,8 +260,8 @@ const b = x.b;
 #### 使用联合类型表示枚举
 
 ```ts
-type Position = 'UP' | 'DOWN' | 'LEFT';
-const position: Position = 'UP';
+type Position = "UP" | "DOWN" | "LEFT";
+const position: Position = "UP";
 ```
 
 > 可以避免 enumerate 入侵了运行时
@@ -269,7 +272,7 @@ ts 初学者很容易写出下面的代码:
 
 ```ts
 function isString(value){
-  return Object.prototype.toString.call(value) === '[object String]
+  return Object.prototype.toString.call(value) === '[object String]'
 }
 function f(x:string|number){
   if(isString(x)) return x.length //error 类型string|number 上不存在属性"length"
@@ -292,7 +295,7 @@ function isString(value:unknown) :value is string {
 
    ```ts
    function f(x: string | number) {
-     if (typeof x === 'string') return x.length;
+     if (typeof x === "string") return x.length;
    }
    ```
 
@@ -325,7 +328,7 @@ function isString(value:unknown) :value is string {
 function fn(x: string) {
   return x.length;
 }
-const obj = { x: 1, y: '2' };
+const obj = { x: 1, y: "2" };
 type T0 = typeof fn; //(x:string) => number
 type T1 = typeof obj; // {x:number, y: string}
 ```
@@ -347,7 +350,7 @@ type PersonAttrs = keyof Person; // 'name'| 'age'
 `in`也是一个**类型关键词**, 可以对联合类型进行遍历,也可以只用在`type`关键字下面。
 
 ```ts
-type Person = { [key in 'name' | 'age']: number }; // {name:number, age:number}
+type Person = { [key in "name" | "age"]: number }; // {name:number, age:number}
 ```
 
 ### []操作符
@@ -359,7 +362,7 @@ interface Person {
   name: string;
   age: number;
 }
-type x = Person['name']; // x is string
+type x = Person["name"]; // x is string
 ```
 
 ### 小栗子
@@ -457,7 +460,7 @@ typescript 2.8 在`lib.d.ts`中内置了几个映射类型
 - `Pick<T,U>` -- 选择`T`中可以赋值给`U`的类型
 - `Exclude<T,U>` --从`T`中**剔除**所有包含的`U`属性
 - `Extract<T,U>` --从`T`中**提取出**所有包含的 `U` 属性值
-- `RenturnType<T>` --获得函数返回值类型
+- `ReturnType<T>` --获得函数返回值类型
 - `InstanceType<T>` -- `获得构造函数类型的实例类型
 
 ```ts
@@ -469,7 +472,7 @@ interface ApiRes {
   success: boolean;
   error: boolean;
 }
-type IApiRes = Pick<ApiRes, 'code' | 'flag' | 'message' | 'data'>;
+type IApiRes = Pick<ApiRes, "code" | "flag" | "message" | "data">;
 // {
 //   code: string;
 //   flag: string;
@@ -485,7 +488,7 @@ type IApiRes = Pick<ApiRes, 'code' | 'flag' | 'message' | 'data'>;
 ```ts
 type Union = string | number;
 
-type isNumber<T> = T extends number ? 'isNumber' : 'notNumber';
+type isNumber<T> = T extends number ? "isNumber" : "notNumber";
 type UnionType = isNumber<Union>; //'notNumber'| 'isNumber'
 ```
 
@@ -544,19 +547,19 @@ declare class Person {
 #### 方法一： 文件位置随意，源码中指定`declare module xxx`
 
 ```ts
-declare module 'abcd' {
+declare module "abcd" {
   export let a: number;
   export function b(): number;
   export namespace c {
     let cd: string;
   }
 }
-let aaa = require('abcd');
+let aaa = require("abcd");
 aaa.b();
 ```
 
 ```ts
-declare module 'app' {
+declare module "app" {
   // 导出是文件本身
   function aaa(some: number): number;
   export = aaa;
@@ -588,8 +591,8 @@ ts 提供了一个语法`declare module`，它可以用来扩展原有模块的�
 
 ```ts
 // 如果是需要扩展原有模块的话，需要类型声明文件中先引用原有模块，再使用declare module扩展原有模块
-import Vue from 'vue';
-declare module 'vue/types/vue' {
+import Vue from "vue";
+declare module "vue/types/vue" {
   interface Vue {
     $openDialog: Function;
     $closeDialog: Function;
@@ -617,8 +620,8 @@ declare module 'vue/types/vue' {
 使用 ts 书写后缀时，自动生成同时，也可以手动设置 d.ts 文件
 
 ```ts
-declare module 'xxx';
-export * from '../lib';
+declare module "xxx";
+export * from "../lib";
 ```
 
 ## 5 tsconfig.json
@@ -631,9 +634,9 @@ TypeScript 和 ES6 引入了 Class 的概念，同时在[stage 2 proposal](https
 
 ```ts
 function f() {
-  console.log('f();evaluated');
+  console.log("f();evaluated");
   return function(target, propertyKey: string, descriptor: PropertyDescriptor) {
-    console.log('fn() called');
+    console.log("fn() called");
   };
 }
 ```
