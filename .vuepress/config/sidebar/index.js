@@ -6,6 +6,6 @@ module.exports = {
       // collapsable: false,
       children: ["js/", "js/closure", "js/eventLoop"],
     },
-    { title: "Vue", children: ["vue/", "vue/vue生命周期"] },
+    { title: "Vue", children: ["vue/", "vue/vue-hooks", "vue/composition-api"] },
   ],
 };

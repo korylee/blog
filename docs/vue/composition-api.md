@@ -1,5 +1,5 @@
 ---
-title: compostion-api
+title: composition-api
 date: 2020-11-20
 tags:
   - vue
@@ -97,14 +97,14 @@ b.list[1].count === 1; // true
 > ⚠️ 警告: `set` 和 `del` 并非 Vue 3 的一部分。由于 [Vue 2.x 响应式系统的限制](https://vuejs.org/v2/guide/reactivity.html#For-Objects)，我们在插件中提供该 API 作为添加响应式属性的一个变通方案。在 Vue 3 中，你只需要直接为属性赋值即可。
 
 ```ts
-import { reactive, set } from '@vue/composition-api';
+import { reactive, set } from "@vue/composition-api";
 
 const a = reactive({ foo: 1 });
 
 // 添加新的响应式属性
-set(a, 'bar', 1);
+set(a, "bar", 1);
 // 刪除属性并触发响应式更新
-del(a, 'bar');
+del(a, "bar");
 ```
 
 </details>
@@ -211,7 +211,7 @@ export default {
     const root = ref(null);
 
     return () =>
-      h('div', {
+      h("div", {
         ref: root,
       });
 
@@ -242,8 +242,8 @@ export default {
     });
 
     return () =>
-      h('div', {
-        ref: 'root',
+      h("div", {
+        ref: "root",
       });
 
     // 使用 JSX
@@ -255,9 +255,9 @@ export default {
 如果项目使用了 TypeScript，你还需要扩展 `SetupContext` 类型:
 
 ```ts
-import Vue from 'vue';
+import Vue from "vue";
 
-declare module '@vue/composition-api' {
+declare module "@vue/composition-api" {
   interface SetupContext {
     readonly refs: { [key: string]: Vue | Element | Vue[] | Element[] };
   }
@@ -319,20 +319,18 @@ watch(
 ⚠️ 当使用 <code>toRefs</code> 访问深层属性对象 （如 <code>toRefs(props.foo.bar)</code> 时将会得到不正确的警告。
 ⚠️ <code>isReactive(props.foo.bar)</code> 将会返回 false。
 </summary>
-  
+
 ```ts
 defineComponent({
   setup(props) {
-    const { bar } = toRefs(props.foo) // it will `warn`
+    const { bar } = toRefs(props.foo); // it will `warn`
 
     // use this instead
-    const { foo } = toRefs(props)
-    const a = foo.value.bar
-
-}
-})
-
-````
+    const { foo } = toRefs(props);
+    const a = foo.value.bar;
+  },
+});
+```
 
 </details>
 
@@ -359,10 +357,11 @@ export default {
     return {
       // 在模版中会成为 { a: { value: 1 } }
       a: ref(1),
-    }
+    };
   },
-}
+};
 ```
+
 </details>
 
 ### `emit` 选项

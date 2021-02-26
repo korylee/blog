@@ -1,5 +1,5 @@
 ---
-title: Vue项目TypeScript指南
+title: TypeScript指南
 date: 2020-11-08
 tags:
   - TypeScript
@@ -233,7 +233,7 @@ const x: Person & Animal = {
 };
 ```
 
-在 JavaScript 中,`extend`是一种非常常见的模式,在这种模式中,你可以从两个对象中创建一个新对象,新对象拥有着两个对象的所有功能。
+在 JavaScript 中,`extends`是一种非常常见的模式,在这种模式中,你可以从两个对象中创建一个新对象,新对象拥有着两个对象的所有功能。
 
 交叉类型可以让你安全的使用此种模式：
 
@@ -353,7 +353,7 @@ type PersonAttrs = keyof Person; // 'name'| 'age'
 type Person = { [key in "name" | "age"]: number }; // {name:number, age:number}
 ```
 
-### []操作符
+### `[]`操作符
 
 使用`[]`操作符可以进行索引访问， 也是一个**类型关键词**
 
@@ -430,55 +430,123 @@ type x = IsNumber<string>; // false
 
 #### 几个内置的映射类型
 
+typescript 在`lib.es5.d.ts`中内置了几个映射类型
+
+- `Record<K, T>` --生成一个属性为 K, 类型为 T 的类型集合
+- ```ts
+  type Record<K extends keyof any,T>{
+    [P in K]:T
+  }
+  ```
+- `Partial<T>` --将`T`中的所有属性变成可选
+- ```ts
+  type Partial<T> = { [P in typeof T]?: T[P] };
+  ```
+- `Required<T>` --将`T`中的所有属性变成必选
+- ```ts
+  type Required<T> = {
+    [P in keyof T]-?: T[P];
+  };
+  ```
+- `Readonly<T>` --将`T`中的所有属性变成可读
+- ```ts
+  type Readonly<T> = {
+    readonly [P in keyof T]: T[P];
+  };
+  ```
+- `Pick<T,U>` -- 选择`T`中可以赋值给`U`的类型
+- ```ts
+  type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+  };
+  ```
+- `Exclude<T,U>` --从`T`中**剔除**所有包含的`U`属性
+- ```ts
+  type Exclude<T, U> = T extends U ? never : T;
+  ```
+- `Extract<T,U>` --从`T`中**提取出**所有包含的 `U` 属性值
+- ```ts
+  type Extract<T, U> = T extends U ? T : never;
+  ```
+- `ReturnType<T>` --获得函数返回值类型
+- ```ts
+  type ReturnType<T extends (...args: any[]) => any> = T extends (
+    ...args: any[]
+  ) => infer R
+    ? R
+    : any;
+  ```
+- `InstanceType<T>` -- `获得构造函数类型的实例类型
+- ```ts
+  type InstanceType<T extends new (...args: any[]) => any> = T extends new (
+    ...args: any
+  ) => infer R
+    ? R
+    : any;
+  ```
+- `NonNullable` --去除`null`或者`undefined`
+- ```ts
+  type NonNullable<T> = T extends null | undefined ? never : T;
+  ```
+- `Parameters<T>` --获得函数参数类型,而且返回的是只能包含一组类型的数组
+- ```ts
+  type Parameters<T extends (...args: any[]) => any> = T extends (
+    ...args: infer P
+  ) => any
+    ? P
+    : never;
+  ```
+- `ConstructorParameters<T>` --获取一个类的构造参数类型,并以数组的形式返回
+- ```ts
+  type ConstructorParameters<
+    T extends new (...args: any[]) => any
+  > = T extends new (...args: infer P) => any ? P : never;
+  ```
+- `Omit<T, K>` --忽略 T 中的 K 属性
+- ```ts
+  type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+  ```
+
+#### 非内置类型定义
+
+- `DeepReadonly<T>` --用来深度遍历 T,并将其所有属性变成只读属性
+
 ```ts
-// 用来生成一个属性为K,类型为T的类型集合
-type Record<K extends keyof any, T> = {
-  [P in T]: T;
-};
-// 每个属性都变成可选
-type Partial<T> = {
-  [P in typeof T]?: T[P];
-};
-// 每个属性都变为必选
-type Required<T> = {
-  [P in keyof T]-?: T[P];
-};
-// 每个属性都变成可读
-type Readonly<T> = {
-  readonly [P in keyof T]: T[P];
-};
-// 选择对象中的某些属性
-type Pick<T, K extends keyof T> = {
-  [P in K]: T[P];
+type DeepReadonly<T> = { readonly [P in keyof T]: DeepReadonly<T[P]> };
+```
+
+- `DeepPartial<T>` -- 深度遍历 T,将所有属性变成可选属性
+
+```ts
+type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? T extends unknown[]
+    ? DeepPartial<T[number]>[]
+    : { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+```
+
+- `ConvertNumberToString<T>` --将`number`类型转换为`string`类型
+
+```ts
+type ConvertNumberToString<T> = {
+  [K in keyof T]: T[K] extends string ? string : T[K];
 };
 ```
 
-typescript 2.8 在`lib.d.ts`中内置了几个映射类型
-
-- `Partial<T>` --将`T`中的所有属性变成可选
-- `Readonly<T>` --将`T`中的所有属性变成可读
-- `Pick<T,U>` -- 选择`T`中可以赋值给`U`的类型
-- `Exclude<T,U>` --从`T`中**剔除**所有包含的`U`属性
-- `Extract<T,U>` --从`T`中**提取出**所有包含的 `U` 属性值
-- `ReturnType<T>` --获得函数返回值类型
-- `InstanceType<T>` -- `获得构造函数类型的实例类型
+- `ValueOf<T>` --取出指定类型所有 value
 
 ```ts
-interface ApiRes {
-  code: string;
-  flag: string;
-  message: string;
-  data: object;
-  success: boolean;
-  error: boolean;
-}
-type IApiRes = Pick<ApiRes, "code" | "flag" | "message" | "data">;
-// {
-//   code: string;
-//   flag: string;
-//   message: string;
-//   data: object;
-// }
+type ValueOf<T> = T[keyof T];
+```
+
+- `Mutable<T>` --将所有属性的`readonly`移除
+
+```ts
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
 ```
 
 #### extends 条件分发
@@ -831,3 +899,7 @@ node 模块解析方式
 ## 站在巨人肩膀上
 
 - [springleo's blog](https://lq782655835.github.io/blogs/project/ts-tsconfig.html)
+
+```
+
+```
