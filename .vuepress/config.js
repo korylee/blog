@@ -20,4 +20,5 @@ module.exports = {
   markdown: {
     lineNumbers: true,
   },
+  permalink:"/:year/:month/:slug"
 };

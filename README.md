@@ -1,13 +1,12 @@
 ---
 home: true
+permalink: /:regular
 heroText: 二狗同学的灌水博客
 tagline: Write once,debug everywhere
 isShowTitleInHome: false
-actionText: Guide
-actionLink: /docs/vue/
-bgImageStyle: {
-  height: '550px'
-}
+# actionText: Guide
+# actionLink: /docs/vue/
+bgImageStyle: { height: "550px" }
 # heroImage: /hero.png
 # heroImageStyle: {
 #   maxWidth: '600px',

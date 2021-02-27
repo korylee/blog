@@ -5,6 +5,7 @@
     "eval",
     "instanceof",
     "keyof",
+    "macrotask",
     "proto",
     "reco",
     "typeof",
