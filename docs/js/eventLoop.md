@@ -172,6 +172,8 @@ setImmediate 只在事件循环 check 阶段执行, poll 阶段空闲时会检�
 
 ## 贴个题
 
+### 题一
+
 [解答在这里](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/7)
 
 ```js
@@ -212,7 +214,7 @@ setTimeout
 */
 ```
 
-这个忘了是在哪看的来着
+### 题二
 
 ```JS
 console.log('1');

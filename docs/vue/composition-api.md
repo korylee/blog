@@ -3,6 +3,9 @@ title: composition-api
 date: 2020-11-20
 tags:
   - vue
+categories:
+  - frontEnd
+publish: false
 ---
 
 ## limitation
@@ -388,4 +391,7 @@ defineComponent({
 ```
 
 </details>
-````
+
+## 引用
+
+- [composition-api Github](https://github.com/vuejs/composition-api)

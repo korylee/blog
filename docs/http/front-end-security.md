@@ -299,7 +299,7 @@ CSRF 通常从第三方网站发起，被攻击的网站无法防止攻击发生
 
 - 防止不明外域访问
   - 同源检测
-  - Samesite Cookie
+  - Same site Cookie
 - 提交时要求附加本域才能获取的信息
   - CSRF Token
   - 双重 Cookie 验证

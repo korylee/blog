@@ -215,6 +215,15 @@ ER分类 = declarative(DER) + object(OER);
 
 :::
 
+### 箭头函数
+
+箭头函数的 this 取值，规则非常简单，因为在箭头函数中，可以看做一个普通变量
+
+> An arrow function does note has its own this. the this value of the enclose lexical scope is used;
+> arrow function follow the normal variable lookup rules
+
+箭头函数没有自己的 this 值, 箭头函数中所使用的 this 都是来自函数作用域链,它的取值遵循普通变量一样的规则，在函数作用域链中一层一层往上找
+
 ## VariableEnvironment 变量环境
 
 在 ES6 前,声明变量都是通过`var`关键词声明的,在 ES6 中则提倡使用`let`和`const`来声明变量,为了兼容`var`的写法,于是使用变量环境来存储`var`声明的变量

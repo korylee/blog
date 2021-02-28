@@ -3,6 +3,7 @@ title: Typescript vue 使用
 date: 2020-11-20
 tags:
   - vue
+  - TypeScript
 ---
 
 ## 3. TypeScript Vue 使用
@@ -18,8 +19,8 @@ TS 除了类型系统以及 IDE 提示外，最重要的特性之一就是可以
 - createDecorator 官方提供的创建装饰器函数，vue-component-decorator/vuex-class 库中的各个属性/方法装饰器底层都是调用该函数
 
 ```ts
-import vue from 'vue';
-import Component from 'vue-class-component';
+import vue from "vue";
+import Component from "vue-class-component";
 @Component({
   props: { propMessage: String },
   component: {},
@@ -27,8 +28,8 @@ import Component from 'vue-class-component';
   directive: {},
 })
 export default class App extends Vue {
-  name: string = 'Simon Zhang';
-  helloMsg = 'hello,' + this.propMessage;
+  name: string = "Simon Zhang";
+  helloMsg = "hello," + this.propMessage;
   // computed
   get MyName(): string {
     return `my name is ${this.name}`;
@@ -92,18 +93,18 @@ export default class YourComponent extends Vue {
 - namespace
 
 ```ts
-import Vue from 'vue';
-import Component from 'vue-class-component';
-import { State, Getter, Action, Mutation, namespace } from 'vuex-class';
-const someModule = namespace('path/to/module');
+import Vue from "vue";
+import Component from "vue-class-component";
+import { State, Getter, Action, Mutation, namespace } from "vuex-class";
+const someModule = namespace("path/to/module");
 @Component
 export class MyComp extends Vue {
-  @State('foo') stateFoo;
+  @State("foo") stateFoo;
   @State((state) => state.bar) stateBar;
-  @Getter('foo') getterFoo;
-  @Action('foo') actionFoo;
-  @Mutation('foo') mutationFoo;
-  @someModule.Getter('foo') moduleGetterFoo;
+  @Getter("foo") getterFoo;
+  @Action("foo") actionFoo;
+  @Mutation("foo") mutationFoo;
+  @someModule.Getter("foo") moduleGetterFoo;
 
   // If the argument is omitted, use the property name
   // for each state/getter/action/mutation type
