@@ -10,8 +10,7 @@ categories:
 
 ## ref
 
-ref 常用于基本类型，reactive 用于引用类型。如果 ref 传入对象，其实内部会自动变成 reactive。<br/>
-ref 本质是把 js 基本类型(string/number/bool)包装为引用对象,使得具有响应式特性。
+ref 常用于基本类型，reactive 用于引用类型。如果 ref 传入对象，其实内部会自动变成 reactive。<br/> ref 本质是把 js 基本类型(string/number/bool)包装为引用对象,使得具有响应式特性。
 
 ```ts
 const convert = <T extends unknown>(val: T): T =>
@@ -144,7 +143,67 @@ function createReactiveObject(
 所以还得看代理对象 mutableHandlers 中的处理
 
 ```ts
-export const mutableHandlers: ProxyHandler<object> = {};
+export const mutableHandlers: ProxyHandler<object> = {
+  get: createGetter(false),
+  set,
+  deleteProperty,
+  has,
+  ownKeys,
+};
 ```
+
+get、has、deleteProperty、ownKeys 代理方法中，都调用了 track 函数，用来收集依赖的；而 set 调用了 trigger 函数，当响应式数据变化时，手机的以来被执行回调。从原理看，这跟 vue2.x 是一致的
+
+get 中除常规边界处理外，最重要的是根据代理值的类型，**对 object 类型进行递归调用 reactive。**
+
+```ts
+function createGetter(isReadonly: boolean) {
+  return function get(target: object, key: string | symbol, receiver: object) {
+    // 获取到代理的值
+    const res = Reflect.get(target, key, receiver);
+    if (isSymbol(key) && builtInSymbols.has(key)) {
+      return res;
+    }
+    // 如果是ref包裹的对象，直接返回解包后的值
+    if (isRef(res)) {
+      return res.value;
+    }
+    // track 是逻辑和视图变化最重要的一块
+    track(target, OperationTypes.Get, key);
+    // 值类型，直接返回值；对象类型，递归响应式
+    return isObject(res) ? (isReadonly ? readonly(res) : reactive(res)) : res;
+  };
+}
+```
+
+set 函数里除了代理 set 方法外,最重要的莫过于当值改变时,触发 trigger 方法。
+
+```ts
+function set(
+  target: object,
+  key: string | symbol,
+  value: unknown,
+  receiver: object
+) {
+  value = toRaw(value);
+  const oldValue = (target as any)[key];
+  if (isRef(oldValue) && !isRef(value)) {
+    olaValue.value = value;
+    return true;
+  }
+  const hadKey = hasOwn(target, key); // 是否target本来就有key属性，等价于key in target
+  const result = Reflect.set(target, key, value, receiver);
+  if (target === toRaw(receiver)) {
+    if (!hasKey) {
+      trigger(target, OperationTypes.ADD, key);
+    } else if (hasChanged(value, oldValue)) {
+      trigger(target, OperationType.SET, key);
+    }
+    return result;
+  }
+}
+```
+
+## track/trigger
 
 // TODO 未完待续
