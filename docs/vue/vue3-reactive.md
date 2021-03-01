@@ -206,4 +206,124 @@ function set(
 
 ## track/trigger
 
+- track 用来收集依赖 deps(依赖一般手机 effect/computed/watch 的回调函数)
+- trigger 用于通知 deps, 通知依赖这一状态的对象更新
+
+### 举个例子
+
+使用 effect 和 computed api 时,里面使用了 count.num,意味着这个 effect 依赖于 count.num。当 count.num set 改变值时,需要通知该 effect 去执行。那什么时候 count.num 收集到 effect 这个依赖呢？答案是创建 effect 时的回调函数。如果回调函数中用到响应式数据（意味着会去执行 get 函数），则同步这个 effect 到响应式数据（这里是 count.num）的依赖集中。
+
+其流程是(重点):
+
+1. effect/computed 函数执行
+2. 代码有书写响应式数据,调用到 get，依赖收集
+3. 当有 set 时，依赖集更新
+
+```ts
+const count = reactive({ num: 0 });
+// effect默认没带lazy参数，先会执行effect
+effect(() => {
+  // effect用到对应响应式数据时, count.num get就已经收集好了该effect依赖
+  // 同理,使用computed api 时
+  console.log(count.num);
+});
+// computed依赖于count.num，意味着该computed是count.num的依赖项
+const computedNum = computed(() => 2 * count.num);
+count.num = 7;
+```
+
+### 对应源码解释
+
+先挑 effect 实现过程，再来看依赖收集 track 函数和执行函数 trigger。effect api 主要用 effect 包装了回调函数 fn，并默认执行回调函数，最终执行 `run(effect, fn, args)`。
+
+```ts
+export function effect<T = any>(
+  fn: () => T,
+  options: ReactiveEffectOptions = EMPTY_OBJ
+): ReactiveEffect<T> {
+  if (isEffect(fn)) fn = fn.raw;
+  // 回调fn函数,包装成effect
+  const effect = createReactiveEffect(fn, options);
+  // 默认不是懒加载,lazy=false,执行effect函数
+  if ((!options, lazy)) {
+    effect();
+  }
+  return effect;
+}
+
+function createReactiveEffect<T = any>(
+  fn: () => T,
+  options: ReactiveOptions
+): ReactiveEffect<T> {
+  const effect = function reactiveEffect(...args: unknown[]) {
+    return run(effect, fn, args); // 创建effect时,执行run
+  } as ReactiveEffect;
+  effect._isEffect = true; // 判断是effect
+  effect.active = true; // effect支持手动stop, 此时active会被设置为false
+  effect.raw = fn;
+  effect.scheduler = options.scheduler;
+  effect.onTrack = options.oonTrack;
+  effect.onTrigger = options.onTrigger;
+  effect.onStop = options.onStop;
+  effect.computed = options.computed;
+  effect.deps = [];
+  return effect;
+}
+```
+
+再看 run 函数内容。其实就是执行回调函数时，先对 effect 入栈，使得 effectStack 有值。这个就非常巧妙，当执行 fn 回调时，回调函数的代码中又会去访问响应式数据（reactive），这样又会执行响应数据的 get()方法，get 方法又会去执行后文讲的 track 方法，track 进行依赖收集。
+
+依赖收集哪些东西呢？就是收集当前的 effect 回调函数。这个回调函数（被 effect 包装）不就是刚被储存在 effectStack 么，所以在后续 track 函数中可以看到使用 effectStack 栈。当执行完回调函数，再进行出栈。
+
+**通过使用栈数据结构，以及对代码执行的时机，非常巧妙的就把当前 effect 传递过去，最终被响应式数据收集到依赖集中。**
+
+```ts
+function run(effect: ReactiveEffect, fn: Function, args: unknown[]): unknown {
+  if (!effect.active) {
+    return fn(...args);
+  }
+  // 通常都是走这里,执行回调,同时不同时机effect入栈/出栈
+  if (!effectStack.includes(effect)) {
+    cleanup(effect);
+    // 这里的try finally很巧妙
+    // 入栈=>回调函数执行(使用栈,相当于把effect传递进入了)=>出栈
+    try {
+      effectStack.push(effect);
+      return fn(...args);
+    } finally {
+      effectStack.pop();
+    }
+  }
+}
+```
+
+再来看看依赖收集 track/trigger 具体实现细节
+
+先来看几个存储变量,主要是依赖收集时用到的
+
+```ts
+// the main WeakMap that stores {target=>key=>dep} connections
+// Conceptually, It's easier to think of a dependency as a Dep class
+// witch maintains a Set of subscribers,but we simply store them as
+// raw Sets to reduce memory overhead
+export type Dep = Set<ReactiveEffect>;
+export type KeyToDepMap = Map<any, Dep>;
+// 原始对象: new Map({key1:new Set([effect1,effect2])},{key2:Set2}...)
+// key 是原始对象里的属性,值为该key改变后会触发的一系列的函数,比如渲染、computed
+export const targetMap = new WeakMap<any, KeyToDepMap>();
+```
+
+**track 函数进行数据依赖采集**，以便于后面数据更改能够触发对应的函数。
+
+```ts
+// 收集target key的依赖
+// get: track(target, OperationTypes.GET, key)
+export function track(target: object, type: OperationTypes, key?: unknown) {
+  // 定义的computed、effect api都会推入effectStack栈中
+  if (!shouldTrack || effectStack.length === 0) {
+    return;
+  }
+}
+```
+
 // TODO 未完待续
