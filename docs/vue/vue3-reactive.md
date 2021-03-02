@@ -323,7 +323,97 @@ export function track(target: object, type: OperationTypes, key?: unknown) {
   if (!shouldTrack || effectStack.length === 0) {
     return;
   }
+  // 调用effect/computed api时，能拿到effect对象（即依赖的回调函数）
+  const effect = effectStack[effectStack.length - 1];
+  if (type === OperationTypes.ITERATE) {
+    key = ITERATE_KEY;
+  }
+  // targetMap = {target:deps={key1:[],key2:[] }}
+  // 初始化target
+  let depsMap = targetMap.get(target);
+  if (depsMap === void 0) {
+    targetMap.set(target, (depsMap = new Map()));
+  }
+  // 初始化target.key, 键是target.key，值是依赖effect数组，是个集合
+  let dep = depMaps.get(key);
+  if (dep === void 0) {
+    depsMap.set(key!, (dep = new Set()));
+  }
+  // 依赖收集
+  if (!dep.has(effect)) {
+    dep.add(effect);
+    effect.deps.push(dep);
+  }
 }
 ```
 
-// TODO 未完待续
+trigger，将 track 收集到的 effect 函数集合，添加到 runners 中（二选一放进 effects 或 computedRunners 中），并通过 scheduleRun 执行 effect：
+
+```ts
+// set: trigger(target, OperationTypes.SET, key)
+export function trigger(
+  target: object,
+  type: OperationTypes,
+  key?: unknown,
+  extraInfo?: DebuggerEventExtraInfo
+) {
+  const depsMap = targetMap.get(target);
+  if (depsMap === void 0) {
+    // never been tracked
+    return;
+  }
+  // 把拿到的 depsMap.get(key), 二选一放进effects 或 computedRunners 中
+  const effects = new Set<ReactiveEffect>(),
+    computedRunners = new Set<ReactiveEffect>();
+  // 根据不同的OperationTypes, 把effect = depsMap.get(key)放进runners中
+  if (type === OperationTypes.CLEAR) {
+    // collection being cleared, trigger all effect for target
+    depsMap.forEach((dep) => addRunners(effects, computedRunners, dep));
+  } else {
+    // schedule runs for SET| ADD | DELETE
+    if (key !== void 0) {
+      addRunners(effects, computedRunners, depsMap.get(key));
+    }
+    // also run for iteration key on ADD | DELETE
+    if (type === OperationType.ADD || type === OperationTypes.DELETE) {
+      const iterationKey = Array.isArray(target) ? "length" : ITERATE_KEY;
+      addRunners(effects, computedRunners, depMap.get(iterationKey));
+    }
+  }
+  // 执行runners,即执行effects
+  const run = (effect: ReactiveEffect) => {
+    scheduleRun(effect, target, type, key, extraInfo);
+  };
+  // Important: computed effects must be run first so that computed getters
+  // can be invalidated before any normal effects that depend on them are run.
+  computedRunners.forEach(run);
+  effects.forEach(run);
+}
+
+// 添加runner时，二选一
+function addRunners(
+  effects: Set<ReactiveEffect>,
+  computedRunners: Set<ReactiveEffect>,
+  effectsToAdd: Set<ReactiveEffect> | undefined
+) {
+  if (effectsToAdd !== void 0) {
+    effectsToAdd.forEach((effect) => {
+      if (effect.computed) {
+        computedRunners.add(effect);
+      } else {
+        effects.add(effect);
+      }
+    });
+  }
+}
+```
+
+## 总结
+
+响应式数据，就是当数据对象改变时（set），有用到数据对象的地方，都会自动执行响应的逻辑。比如 effect/computed/watch 等 js api 用到数据对象，则执行对应的回调函数。而视图 view 用到数据对象时，则重新 vnode diff，最后自动进行 dom 更新（即视图更新）。
+
+而 Vue3 响应式源码跟 Vue2.x 源码流程基本一致，依然是利用在使用响应式数据时，执行数据的 get 方法，收集相关的依赖（依赖可以是回调函数，如 effect/computed，也可以是视图自动更新）；在数据进行变化的时候，执行数据的 set 方法，把收集的依赖都依次执行。
+
+## 站在巨人肩上
+
+- [Vue3 响应式原理 - Ref/Reactive/Effect 源码分析](https://lq782655835.github.io/blogs/vue/vue3-code-2.reactive.html)
