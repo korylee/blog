@@ -4,6 +4,8 @@ date: 2020-11-20
 tags:
   - vue
   - TypeScript
+categories:
+  - frontEnd
 ---
 
 ## 3. TypeScript Vue 使用
@@ -12,7 +14,7 @@ TS 除了类型系统以及 IDE 提示外，最重要的特性之一就是可以
 
 ### 3.1 vue-class-component
 
-![vue-class-component](https://github.com/vuejs/vue-class-component)是官方维护的 TypeScript 装饰器，他是基于类的 API，Vue 对其做到完美兼容。
+[vue-class-component](https://github.com/vuejs/vue-class-component)是官方维护的 TypeScript 装饰器，他是基于类的 API，Vue 对其做到完美兼容。
 
 - Component 官方提供的 Component 装饰器
 - mixins
@@ -46,7 +48,7 @@ export default class App extends Vue {
 
 ### 3.2 vue-property-decorator
 
-![vue-property-decorator](https://github.com/kaorun343/vue-property-decorator)完全基于 vue-class-component，但它扩展了很多的特性，极大的方便了 Vue 的写法，它包括 7 个装饰器以及 1 个函数
+[vue-property-decorator](https://github.com/kaorun343/vue-property-decorator)完全基于 vue-class-component，但它扩展了很多的特性，极大的方便了 Vue 的写法，它包括 7 个装饰器以及 1 个函数
 
 - @Prop
 - @Watch

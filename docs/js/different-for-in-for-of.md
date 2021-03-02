@@ -1,6 +1,6 @@
 ---
 title: for in和for of 的区别
-date: 2020-02-28
+date: 2021-02-28
 tags:
   - JavaScript
 categories:
