@@ -145,30 +145,33 @@ while 循环实现持续运转的循环,循环的每一轮称为 tick.对每个 
 
 这是在 ES6 中引入的概念，它加载事件循环之上。这个概念带来最大的影响可能是 Promise 的异步特性
 
-对于`任务队列`最好的理解方式就是,它是挂在`事件循环队列`的每一个 tick 之后的一个队列。在事件循环的每一个 tick 中,可能出现的异步动作不会导致一个完整的新事件添加到事件循环队列中,而会在当前 tick 的任务队列末尾添加一个任务。
+对于`任务队列`最好的理解方式就是，它是挂在`事件循环队列`的每一个 tick 之后的一个队列。在事件循环的每一个 tick 中,可能出现的异步动作不会导致一个完整的新事件添加到事件循环队列中,而会在当前 tick 的任务队列末尾添加一个任务。
 
-- (Macro task)
+- (Macrotask)
 
   - 宏任务的回调函数放到宏任务队列里，等到执行栈清空后取出并放到执行栈中执行
   - 浏览器为了能够使得 JS 内部`macrotask`与 DOM 任务能够有序的执行,会在一个`macrotask`执行结束后,在下一个`macrotask`执行开始前,对页面进行渲染
   - 主要包含: `script`(整体代码),setTimeOut、setInterval、I/O、UI 交互事件、`postMessage`、`MessageChannel`、`setImmediate`（node.js 环境）
 
-- 微任务(Micro tasks)
+- 微任务(Microtasks)
   - 这些任务应该在正在执行的脚本之后立即执行,比如对一些动作进行反应，或者操作异步执行避免整个新任务造成的性能浪费。微任务在其他没有 JavaScript 运行并且 task 执行完毕后执行，
-  - 它的响应速度相比 setTimeOut 会更快，因为无需等渲染，也就是说，在某一个 `macrotask` 执行完后，就会将在它执行期间产生的所有 micro task 都执行完毕(在渲染前)
-  - 主要包含：` Promise``.then `、`MutationObserver`、`process.nextTick`(node.js 环境)
+  - 它的响应速度相比 setTimeOut 会更快，因为无需等渲染，也就是说，在某一个 `macrotask` 执行完后，就会将在它执行期间产生的所有 microtask 都执行完毕(在渲染前)
+  - 主要包含：`Promise.then`、`MutationObserver`、`process.nextTick`(node.js 环境)
 
 ## Node 中的 Event Loop
 
 ![Node](/img/nodeEventLoop.png) 相比浏览器端，宏任务与微任务分别增加一个，上文已经列出来这里就不再赘述
 
-:::warning nextTick & setImmediate process.nextTick 注册的回调会在事件循环的**当前阶段结束前**执行。process 是内核模块，运行时是全局上下文，所以 micro task 只有一个，无论你是在哪个阶段、哪个闭包内用 nextTick 注册的回调都会被 push 到 nextTickQueue，并在事件循环当前阶段结束前执行
+:::warning nextTick & setImmediate process.nextTick
+注册的回调会在事件循环的**当前阶段结束前**执行。process 是内核模块，运行时是全局上下文，所以 micro task 只有一个，无论你是在哪个阶段、哪个闭包内用 nextTick 注册的回调都会被 push 到 nextTickQueue，并在事件循环当前阶段结束前执行
 
 ![nextTick](/img/nextTick.jpg)
 
 setImmediate 只在事件循环 check 阶段执行, poll 阶段空闲时会检测是否有 immediateTask 如果有的话则转入 check 阶段执行 ![setImmediate](/img/setImmediate.jpg)
 
-它俩的名字和作用刚好相反 :::
+它俩的名字和作用刚好相反
+
+:::
 
 ## 贴个题
 

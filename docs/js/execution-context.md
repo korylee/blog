@@ -222,7 +222,7 @@ ER分类 = declarative(DER) + object(OER);
 > An arrow function does note has its own this. the this value of the enclose lexical scope is used;
 > arrow function follow the normal variable lookup rules
 
-箭头函数没有自己的 this 值, 箭头函数中所使用的 this 都是来自函数作用域链,它的取值遵循普通变量一样的规则，在函数作用域链中一层一层往上找
+箭头函数没有自己的 this 值, 箭头函数中所使用的 this 都是来自函数作用域链, 它的取值遵循普通变量一样的规则，在函数作用域链中一层一层往上找
 
 ## VariableEnvironment 变量环境
 

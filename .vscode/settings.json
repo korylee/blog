@@ -1,11 +1,13 @@
 {
   "cSpell.words": [
+    "Microtasks",
     "Weakmap",
     "commitlint",
     "eval",
     "instanceof",
     "keyof",
     "macrotask",
+    "microtask",
     "proto",
     "reco",
     "typeof",
