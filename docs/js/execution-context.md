@@ -198,13 +198,13 @@ ER分类 = declarative(DER) + object(OER);
 
 ## ThisBinding 四条准则
 
+- 构造函数绑定
+  - 当一个函数被当作构造函数使用时`new foo()`
+- 显式绑定
+  - 关键词`call`, `apply`, `bind`
 - 隐式绑定
   - 关键词`.`
   - 隐式绑定发生在对象**方法调用**的时候,即通过点标识符调用对象
-- 显式绑定
-  - 关键词`call`, `apply`, `bind`
-- 构造函数绑定
-  - 当一个函数被当作构造函数使用时`new foo()`
 - 默认绑定
 - 非严格模式下, this 指向全局对象 -- `window` | `global`, 代码输出为全局对象
 - 严格模式下,此时的 this 绑定为`undefined`

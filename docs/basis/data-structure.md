@@ -25,7 +25,7 @@ publish: false
 
 ```js
 // js链表数据结构
-let Node = function(element) {
+let Node = function (element) {
   this.element = element;
   this.next = null;
 };
@@ -101,7 +101,7 @@ NUll 等后续看看 MDN 再补
 
 #### 1.分治法（递归是分支的常见算法）
 
-将原问题分解为若干个规模较小但类似于原问题的子问题（Divide），[递归]的求解这些子问题（Conquer），然后在合并这些子问题的解来建立原问题的解、
+将原问题分解为若干个规模较小但类似于原问题的子问题（Divide），`[递归]`的求解这些子问题（Conquer），然后在合并这些子问题的解来建立原问题的解
 
 #### 2.动态规划
 

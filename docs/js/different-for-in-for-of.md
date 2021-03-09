@@ -10,7 +10,7 @@ categories:
 
 ## for in
 
-以任意顺序遍历一个对象的[可枚举属性](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Enumerability_and_ownership_of_properties)。遍历数组时，key 为**数组下标字符串**；遍历对象,key 为对象字段名
+以任意顺序遍历一个对象的[可枚举属性](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Enumerability_and_ownership_of_properties)。遍历数组时，key 为**数组下标字符串**；遍历对象，key 为对象字段名
 
 ### 缺点
 
