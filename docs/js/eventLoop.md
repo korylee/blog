@@ -155,15 +155,15 @@ while 循环实现持续运转的循环,循环的每一轮称为 tick.对每个 
 
 - 微任务(Microtasks)
   - 这些任务应该在正在执行的脚本之后立即执行,比如对一些动作进行反应，或者操作异步执行避免整个新任务造成的性能浪费。微任务在其他没有 JavaScript 运行并且 task 执行完毕后执行，
-  - 它的响应速度相比 setTimeOut 会更快，因为无需等渲染，也就是说，在某一个 `macrotask` 执行完后，就会将在它执行期间产生的所有 microtask 都执行完毕(在渲染前)
+  - 它的响应速度相比 setTimeOut 会更快，因为无需等渲染，也就是说，在某一个 `macrotask` 执行完后，就会将在它执行期间产生的所有 `microtask` 都执行完毕(在渲染前)
   - 主要包含：`Promise.then`、`MutationObserver`、`process.nextTick`(node.js 环境)
 
 ## Node 中的 Event Loop
 
 ![Node](/img/nodeEventLoop.png) 相比浏览器端，宏任务与微任务分别增加一个，上文已经列出来这里就不再赘述
 
-:::warning nextTick & setImmediate process.nextTick
-注册的回调会在事件循环的**当前阶段结束前**执行。process 是内核模块，运行时是全局上下文，所以 micro task 只有一个，无论你是在哪个阶段、哪个闭包内用 nextTick 注册的回调都会被 push 到 nextTickQueue，并在事件循环当前阶段结束前执行
+:::warning nextTick & setImmediate
+process.nextTick 注册的回调会在事件循环的**当前阶段结束前**执行。process 是内核模块，运行时是全局上下文，所以 micro task 只有一个，无论你是在哪个阶段、哪个闭包内用 nextTick 注册的回调都会被 push 到 nextTickQueue，并在事件循环当前阶段结束前执行
 
 ![nextTick](/img/nextTick.jpg)
 
