@@ -24,7 +24,7 @@ categories:
 - `any`:任意类型
 - `unknown`:未知的类型
 
-任何类型都能分配给`unknown`,但`unknown`不能分配给其他基本类型, 而`any`啥都能分配和被分配。
+任何类型都能分配给`unknown`，但`unknown`不能分配给其他基本类型, 而`any`啥都能分配和被分配。
 
 ```ts
 let foo: unknown;
@@ -703,7 +703,11 @@ TypeScript 和 ES6 引入了 Class 的概念，同时在[stage 2 proposal](https
 ```ts
 function f() {
   console.log("f();evaluated");
-  return function(target, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     console.log("fn() called");
   };
 }

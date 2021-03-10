@@ -40,14 +40,14 @@ JavaScript 有三大对象,分别是**本地对象**、**内置对象**和**宿�
 
 ECMAScript 标准定义了九种[数据类型](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures):
 
-- 六种[原始类型](https://developer.mozilla.org/zh-CN/docs/Glossary/Primitive),可以用`typeof`运算符检查
+- [原始类型](https://developer.mozilla.org/zh-CN/docs/Glossary/Primitive),可以用`typeof`运算符检查
   - [Boolean](https://developer.mozilla.org/en-US/docs/Glossary/Boolean)
   - [Undefined](https://developer.mozilla.org/en-US/docs/Glossary/Undefined)
   - [Number](https://developer.mozilla.org/en-US/docs/Glossary/Number)
   - [String](https://developer.mozilla.org/en-US/docs/Glossary/String)
   - [BigInt](https://developer.mozilla.org/en-US/docs/Glossary/BigInt)
   - [Symbol](https://developer.mozilla.org/en-US/docs/Glossary/Symbol)
-- [null](https://developer.mozilla.org/en-US/docs/Glossary/Null): 特殊的原始类型, 如果未继承对象,则显示 null
+  - [null](https://developer.mozilla.org/en-US/docs/Glossary/Null): 特殊的原始类型, 如果未继承对象,则显示 null
 - [Object](https://developer.mozilla.org/en-US/docs/Glossary/Object): 特殊的非数据的结构类型, 所有由构造函数构造的实例都是 Object: `new Object`、`new Array`、`new Set`、`new WeakSet`、`new WeakMap`、`new Date`等所有用`new`构造出的实例都是`Object`
 - [Function](https://developer.mozilla.org/en-US/docs/Glossary/Function): 非数据结构(non data Structure): 尽管每个 Function 构造函数都是从 Object 构造函数派生的, 但`typeof instance === "function"`这个操作符判断是以 Function 的特殊简写来完成的
 
@@ -61,8 +61,8 @@ ECMAScript 标准定义了九种[数据类型](https://developer.mozilla.org/en-
 
 ```js
 [1,'2',true],toString() // "1,2,true"
-(new Date()).toString()//"Sun Apr 05 2020 22:31:31 GMT+0800 (中国标准时间)"
-({name: 'kory'}).toString() //"[object Object]"
+(new Date()).toString()// "Sun Apr 05 2020 22:31:31 GMT+0800 (中国标准时间)"
+({name: 'kory'}).toString() // "[object Object]"
 132.toString()// Uncaught SyntaxError: Invalid or unexpected token(123.被识别为小数点)
 123..toString()// "123"
 ```
@@ -410,7 +410,7 @@ obj.name; //undefined
 :::
 
 ```js
-[1, 5, 10, 15].find(function(value, index, arr) {
+[1, 5, 10, 15].find(function (value, index, arr) {
   return value > 9;
 }); //10
 ```
@@ -572,7 +572,7 @@ Array(3, 11, 8); // [3,11,8]//当参数个数不小于两个时,Array()才会返
 
 ```js
 let map = {
-  do: function(n) {
+  do: function (n) {
     return n * 2;
   },
 };
@@ -580,7 +580,7 @@ let arrayLike = [1, 2, 3];
 console.log(
   Array.from(
     arrayLike,
-    function(n) {
+    function (n) {
       return this.do(n);
     },
     map
@@ -601,7 +601,7 @@ console.log(
 
 ```js
 if (!Array.isArray) {
-  Array.isArray = function(arg) {
+  Array.isArray = function (arg) {
     return Object.prototype.toString.call(arg) === "[object Array]";
   };
 }
