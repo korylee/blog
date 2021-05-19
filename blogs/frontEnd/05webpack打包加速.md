@@ -172,7 +172,7 @@ const clientWebpackConfig = {
 > webpack 不在维护 uglify-es,并且 uglify-js 不支持 ES6
 > terser 是 uglify 的一个分支,主要保留了与 uglify-es 和 uglify-js@3 的 API 和 CLI 兼容性
 
-### terser 启动多进程 <badge text="推荐">
+### terser 启动多进程 <badge text="推荐"/>
 
 使用多进程并行运行来提高构建速度。并发运行的默认数量为`os.cpus().length-1`
 
