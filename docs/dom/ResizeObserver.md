@@ -26,3 +26,17 @@ categories:
 简单来说，除了第一轮的检查外，其他的每一轮检查都要求元素的高度要大于在上一轮检查元素的高度最小值，从而保证每一次检查，深度会越来越大，直到打到最小的根节点，进而检查结束
 
 对于那些深度小于上一次的最小深度的`observation`会自动到下一个 Event Loop 的时机去检查
+
+```js
+import ResizeObserver from "resize-observer-polyfill";
+const ro = new ResizeObserver((entries, observer) => {
+  for (const entry of entries) {
+    const { left, top, width, height } = entry.contentRect;
+    console.log("entry", entry);
+    console.log("element", entry.target);
+    console.log(`Element's size ${width}px x ${height}px`);
+    console.log(`Element's paddings ${top}px; ${left}px`);
+  }
+});
+ro.observe(document.body);
+```
