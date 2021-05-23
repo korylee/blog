@@ -17,9 +17,10 @@ module.exports = {
       title: "Vue",
       children: [
         "vue/",
+        "vue/typescript-use",
         "vue/vue-hooks",
         "vue/composition-api",
-        "vue/typescript-use",
+        "vue/vue3-reactive"
       ],
     },
     {
