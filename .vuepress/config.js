@@ -1,9 +1,11 @@
 const themeConfig = require("./config/theme/index.js");
 const plugins = require("./config/plugins/index.js");
+
 module.exports = {
   title: "kory's blog",
   description: "",
   dest: "public",
+  base: './',
   head: [
     ["link", { rel: "icon", href: "/favicon.ico" }],
     [

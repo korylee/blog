@@ -32,5 +32,13 @@ module.exports = {
         "http/front-end-security",
       ],
     },
+    {
+      title: "Dom",
+      children: [
+        "dom/",
+        "dom/IntersectionObserver",
+        "dom/ResizeObserver",
+      ],
+    },
   ],
 };
