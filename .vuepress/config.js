@@ -5,7 +5,6 @@ module.exports = {
   title: "kory's blog",
   description: "",
   dest: "public",
-  base: './',
   head: [
     ["link", { rel: "icon", href: "/favicon.ico" }],
     [
@@ -22,5 +21,4 @@ module.exports = {
   markdown: {
     lineNumbers: true,
   },
-  permalink:"/:year/:month/:slug"
 };

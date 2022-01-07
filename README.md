@@ -1,6 +1,6 @@
 ---
 home: true
-permalink: /:regular
+# permalink: /:regular
 heroText: 二狗同学的灌水博客
 tagline: Write once,debug everywhere
 isShowTitleInHome: false
