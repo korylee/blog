@@ -1,7 +1,7 @@
 module.exports = {
   title: "kory's blog",
   description: '记录，成为更好的自己。',
-  dest: '/public',
+  dest: 'public',
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'viewport', content: 'width=device-width,initial-scale=1,user-scalable=no' }]
