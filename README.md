@@ -1,12 +1,7 @@
 ---
 home: true
-# permalink: /:regular
-heroText: 二狗同学的灌水博客
-tagline: Write once,debug everywhere
-isShowTitleInHome: false
-# actionText: Guide
-# actionLink: /docs/vue/
-bgImageStyle: { height: "550px" }
+heroText: 扣肉的灌水博客
+tagline: 记录，成为更好的自己。
 # heroImage: /hero.png
 # heroImageStyle: {
 #   maxWidth: '600px',
@@ -16,12 +11,7 @@ bgImageStyle: { height: "550px" }
 #   background: '#fff',
 #   borderRadius: '1rem',
 # }
-
-# features:
-# - title: Yesterday
-#   details: 开发一款看着开心、写着顺手的 vuepress 博客主题
-# - title: Today
-#   details: 希望帮助更多的人花更多的时间在内容创作上，而不是博客搭建上
-# - title: Tomorrow
-#   details: 希望更多的爱好者能够参与进来，帮助这个主题更好的成长
+# isShowTitleInHome: false
+# actionText: Guide
+# actionLink: /views/other/guide
 ---

@@ -1,10 +1,11 @@
 {
   "name": "blog",
   "version": "1.0.0",
-  "author": "kory",
-  "description": "Write once,debug everywhere",
+  "main": "index.js",
+  "author": "kory <kory.lee@qq.com>",
+  "license": "MIT",
   "scripts": {
-    "dev": "vuepress dev . --open --host \"localhost\"",
+    "dev": "vuepress dev .",
     "build": "vuepress build .",
     "clean:lib": "npx rimraf node_modules",
     "reinstall": "yarn clean:lib && yarn",
@@ -13,11 +14,8 @@
   "devDependencies": {
     "@vuepress/plugin-pwa": "^1.9.5",
     "eslint": "^8.6.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "prettier": "^2.5.1",
     "vuepress": "^1.9.5",
     "vuepress-plugin-nuggets-style-copy": "^1.0.3",
-    "vuepress-theme-reco": "1.6.10"
+    "vuepress-theme-reco": "^1.6.10"
   }
 }
