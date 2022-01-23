@@ -43,11 +43,7 @@ Function.prototype.myApply = function (context, args) {
 Function.prototype.myBind = function (context, ...args) {
   const fn = this;
   const bindFn = function (...newArgs) {
-    return fn.call(
-      this instanceof bindFn ? this : context,
-      ...args,
-      ...newArgs
-    );
+    return fn.call(this instanceof bindFn ? this : context, ...args, ...newArgs);
   };
   bindFn.prototype = Object.create(fn.prototype);
   return bindFn;
@@ -178,44 +174,30 @@ class Promise {
   }
   resolve(value) {
     if (this.status !== "pending") return;
-    if (value === this)
-      throw new TypeError("Chaining cycle detected for promise");
+    if (value === this) throw new TypeError("Chaining cycle detected for promise");
     if (value instanceof Object) {
       const then = value.then;
       if (typeof then === "function") {
-        return then.call(
-          value,
-          this.resolve.bind(this),
-          this.reject.bind(this)
-        );
+        return then.call(value, this.resolve.bind(this), this.reject.bind(this));
       }
     }
     this.status = "fulfilled";
     this.value = value;
     // 如果回调函数数组中有值，说明之前执行过then，需要调用then接受的函数
-    this.callback.forEach((callback) =>
-      callback.onFulfilled.call(undefined, value)
-    );
+    this.callback.forEach((callback) => callback.onFulfilled.call(undefined, value));
   }
   reject(reason) {
     if (this.status !== "pending") return;
-    if (reason === this)
-      throw new TypeError("Chaining cycle detected for promise");
+    if (reason === this) throw new TypeError("Chaining cycle detected for promise");
     if (reason instanceof Object) {
       const then = reason.then;
       if (typeof then === "function") {
-        return then.call(
-          reason,
-          this.resolve.bind(this),
-          this.reject.bind(this)
-        );
+        return then.call(reason, this.resolve.bind(this), this.reject.bind(this));
       }
     }
     this.status = "rejected";
     this.value = reason;
-    this.callback.forEach((callback) =>
-      callback.onRejected.call(undefined, reason)
-    );
+    this.callback.forEach((callback) => callback.onRejected.call(undefined, reason));
   }
   // 静态方法在程序开始时生成内存，实例方法在程序运行过程中生成内存
   // 所以静态方法可以直接调用，实例方法要先生成示例，通过实例调用方法，静态速度很快，但多了会产生内存
@@ -376,13 +358,13 @@ class LRUCache {
       this.$cache.set(key, temp);
       return temp;
     }
-    return false;
+    return undefined;
   }
   put(key, value) {
-    this.$cache.set(key, value);
     if (this.$cache.has(key)) this.$cache.delete(key);
     else if (this.$cache.size >= this.$capacity)
       this.$cache.delete(this.$cache.keys().next().value);
+    this.$cache.set(key, value);
   }
 }
 ```
@@ -424,9 +406,7 @@ function mergeSort(arr) {
 function merger(leftArr, rightArr) {
   const result = [];
   while (leftArr.length && rightArr.length) {
-    leftArr[0] <= rightArr[0]
-      ? result.push(leftArr.shift())
-      : result.push(rightArr.shift());
+    leftArr[0] <= rightArr[0] ? result.push(leftArr.shift()) : result.push(rightArr.shift());
   }
   while (leftArr.length) result.push(leftArr.shift());
   while (rightArr.length) result.push(rightArr.shift());
@@ -516,12 +496,7 @@ const throttle = (fn, wait = 300) => {
  * @param {boolean} first 开始触发时是否立即执行
  * @param {boolean} last 停止触发时是否继续执行,与first不呢同时设置为false
  **/
-const throttle = (
-  fn,
-  wait = 300,
-  { first = true, last = true } = {},
-  ...args
-) => {
+const throttle = (fn, wait = 300, { first = true, last = true } = {}, ...args) => {
   let timeId,
     args,
     prev = 0;
@@ -598,8 +573,7 @@ document.addEventListener("mouseup", function (e) {
 ## 深拷贝
 
 ```js
-const isType = (type) => (obj) =>
-  Object.prototype.toString.call(obj) === `[object ${type}]`;
+const isType = (type) => (obj) => Object.prototype.toString.call(obj) === `[object ${type}]`;
 const isArray = isType("Array");
 const isNull = isType("Null");
 const isFunction = isType("Function");
@@ -607,8 +581,7 @@ const isDate = isType("Date");
 const isRegExp = isType("RegExp");
 
 const deepClone = (obj, map = new Map()) => {
-  if (typeof obj !== "object" || isNull(obj) || isDate(obj) || isRegExp(obj))
-    return obj;
+  if (typeof obj !== "object" || isNull(obj) || isDate(obj) || isRegExp(obj)) return obj;
   if (map.has(obj)) return map.get(obj);
   const res = isArray(obj) ? [] : {};
   map.set(obj, res);
@@ -619,12 +592,178 @@ const deepClone = (obj, map = new Map()) => {
 
 ## 实现 sleep
 
-某个时间后执行某个函数,感觉可以直接用 async 写
-
 ```js
-const sleep = (cb, time = 300) =>
-  new Promise((resolve, reject) => setTimeout(() => resolve(cb), time));
+const sleep = (time = 300) => new Promise((resolve) => setTimeout(resolve, time));
 ```
+
+## 发布订阅模式 Mitt
+
+```ts
+/**
+ * copy to https://github.com/developit/mitt
+ * Expand clear method
+ */
+
+export type EventType = string | symbol;
+
+// An event handler can take an optional event argument
+// and should not return a value
+export type Handler<T = any> = (event?: T) => void;
+export type WildcardHandler = (type: EventType, event?: any) => void;
+
+// An array of all currently registered event handlers for a type
+export type EventHandlerList = Array<Handler>;
+export type WildCardEventHandlerList = Array<WildcardHandler>;
+
+// A map of event types and their corresponding event handlers.
+export type EventHandlerMap = Map<EventType, EventHandlerList | WildCardEventHandlerList>;
+
+export interface Emitter {
+  all: EventHandlerMap;
+
+  on<T = any>(type: EventType, handler: Handler<T>): void;
+  on(type: "*", handler: WildcardHandler): void;
+
+  off<T = any>(type: EventType, handler: Handler<T>): void;
+  off(type: "*", handler: WildcardHandler): void;
+
+  emit<T = any>(type: EventType, event?: T): void;
+  emit(type: "*", event?: any): void;
+  clear(): void;
+}
+
+/**
+ * Mitt: Tiny (~200b) functional event emitter / pubsub.
+ * @name mitt
+ * @returns {Mitt}
+ */
+export default function mitt(all?: EventHandlerMap): Emitter {
+  all = all || new Map();
+
+  return {
+    /**
+     * A Map of event names to registered handler functions.
+     */
+    all,
+
+    /**
+     * Register an event handler for the given type.
+     * @param {string|symbol} type Type of event to listen for, or `"*"` for all events
+     * @param {Function} handler Function to call in response to given event
+     * @memberOf mitt
+     */
+    on<T = any>(type: EventType, handler: Handler<T>) {
+      const handlers = all?.get(type);
+      const added = handlers && handlers.push(handler);
+      if (!added) {
+        all?.set(type, [handler]);
+      }
+    },
+
+    /**
+     * Remove an event handler for the given type.
+     * @param {string|symbol} type Type of event to unregister `handler` from, or `"*"`
+     * @param {Function} handler Handler function to remove
+     * @memberOf mitt
+     */
+    off<T = any>(type: EventType, handler: Handler<T>) {
+      const handlers = all?.get(type);
+      if (handlers) {
+        handlers.splice(handlers.indexOf(handler) >>> 0, 1);
+      }
+    },
+
+    /**
+     * Invoke all handlers for the given type.
+     * If present, `"*"` handlers are invoked after type-matched handlers.
+     *
+     * Note: Manually firing "*" handlers is not supported.
+     *
+     * @param {string|symbol} type The event type to invoke
+     * @param {Any} [evt] Any value (object is recommended and powerful), passed to each handler
+     * @memberOf mitt
+     */
+    emit<T = any>(type: EventType, evt: T) {
+      ((all?.get(type) || []) as EventHandlerList).slice().map((handler) => {
+        handler(evt);
+      });
+      ((all?.get("*") || []) as WildCardEventHandlerList).slice().map((handler) => {
+        handler(type, evt);
+      });
+    },
+
+    /**
+     * Clear all
+     */
+    clear() {
+      this.all.clear();
+    },
+  };
+}
+```
+
+## list-helper
+
+```ts
+interface TreeHelperConfig {
+  id: string;
+  children: string;
+  pid: string;
+}
+function listToTree<T = any>(
+  list: any[],
+  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
+): T[] {
+  const nodeMap = new Map();
+  const result: T[] = [];
+  for (const node of list) {
+    node[children] = node[children] || [];
+    nodeMap.set(node[id], node);
+  }
+  for (const node of list) {
+    const parent = nodeMap.get(node[pid]);
+    (parent ? parent.children : result).push(node);
+  }
+  return result;
+}
+
+function treeToList<T=any>(
+  tree: any,
+  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
+):T {
+  const result:any = [...tree]
+  for( let i =0;i<result.length;i++>){
+    if(!result[i][children!]) continue
+    result.splice(i+1,0,...result[i][children!])
+  }
+  return result
+}
+function findNode<T = any>(
+  tree: any,
+  func: Fn,
+  { children } : Partial<TreeHelperConfig> = {},
+): T | null {
+  const list = [...tree];
+  for (const node of list) {
+    if (func(node)) return node;
+    node[children!] && list.push(...node[children!]);
+  }
+  return null;
+}
+
+function listToMap<T = any, R = any>(
+  list: T[],
+  getKey: string | ((T) => string) = "id",
+  getValue: (T) => T | R = (item) => item
+): Record<string, T | R> {
+  return list.reduce((acc, cur) => {
+    const key = isFunction(getKey) ? getKey(cur) : getKey;
+    const value = getValue(cur);
+    return { ...acc, [key]: value };
+  }, {});
+}
+```
+
 
 ## 参考
 
