@@ -753,17 +753,19 @@ function findNode<T = any>(
 
 function listToMap<T = any, R = any>(
   list: T[],
-  getKey: string | ((T) => string) = "id",
-  getValue: (T) => T | R = (item) => item
-): Record<string, T | R> {
+  getKey: string | ((T) => string) = 'id',
+  getValue: (T) => T | R = (item) => item,
+  map: Map<string, T | R> | any = {},
+): Record<string, T | R> | Map<string, T | R> {
   return list.reduce((acc, cur) => {
     const key = isFunction(getKey) ? getKey(cur) : getKey;
     const value = getValue(cur);
-    return { ...acc, [key]: value };
-  }, {});
+    Reflect.set(acc, key, value);
+    return acc;
+  }, map);
 }
-```
 
+```
 
 ## 参考
 
