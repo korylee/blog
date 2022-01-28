@@ -6,6 +6,7 @@ tags:
   - 学习笔记
 categories:
   - frontEnd
+  
 ---
 
 ## ES6 部分语法糖实现
@@ -14,12 +15,12 @@ categories:
 
 ```js
 Function.prototype.myCall = function (context, ...args) {
-  context = (context ?? window) && new Object(context);
-  const key = Symbol();
-  context[key] = this;
-  const result = context[key](...args);
-  delete context[key];
-  return result;
+    context = (context ?? window) && new Object(context);
+    const key = Symbol();
+    context[key] = this;
+    const result = context[key](...args);
+    delete context[key];
+    return result;
 };
 ```
 
@@ -27,13 +28,13 @@ Function.prototype.myCall = function (context, ...args) {
 
 ```js
 Function.prototype.myApply = function (context, args) {
-  context = (context ?? window) && new Object(context);
-  const key = Symbol();
-  context[key] = this;
-  args = Array.from(args);
-  const result = args ? context[key](args) : context[key]();
-  delete context[key];
-  return result;
+    context = (context ?? window) && new Object(context);
+    const key = Symbol();
+    context[key] = this;
+    args = Array.from(args);
+    const result = args ? context[key](args) : context[key]();
+    delete context[key];
+    return result;
 };
 ```
 
@@ -41,12 +42,12 @@ Function.prototype.myApply = function (context, args) {
 
 ```js
 Function.prototype.myBind = function (context, ...args) {
-  const fn = this;
-  const bindFn = function (...newArgs) {
-    return fn.call(this instanceof bindFn ? this : context, ...args, ...newArgs);
-  };
-  bindFn.prototype = Object.create(fn.prototype);
-  return bindFn;
+    const fn = this;
+    const bindFn = function (...newArgs) {
+        return fn.call(this instanceof bindFn ? this : context, ...args, ...newArgs);
+    };
+    bindFn.prototype = Object.create(fn.prototype);
+    return bindFn;
 };
 ```
 
@@ -54,9 +55,9 @@ Function.prototype.myBind = function (context, ...args) {
 
 ```js
 const createNew = function (con, ...args) {
-  let obj = Object.create(con.prototype);
-  let result = con.apply(obj, args);
-  return result instanceof Object ? result : obj;
+    let obj = Object.create(con.prototype);
+    let result = con.apply(obj, args);
+    return result instanceof Object ? result : obj;
 };
 ```
 
@@ -66,10 +67,10 @@ const createNew = function (con, ...args) {
 
 ```js
 Object.myCreate = (o, properties) => {
-  const F = {};
-  Reflect.setPrototypeOf(F, o);
-  Object.defineProperties(F, properties);
-  return F;
+    const F = {};
+    Reflect.setPrototypeOf(F, o);
+    Object.defineProperties(F, properties);
+    return F;
 };
 ```
 
@@ -79,26 +80,28 @@ Object.myCreate = (o, properties) => {
 
 ```js
 function Promise(executor) {
-  var self = this;
-  var callbacks = [];
-  executor(resolve.bind(self));
-  function resolve(value) {
-    setTimeout(() => {
-      self.data = value;
-      callbacks.forEach((cb) => cb(value));
-    });
-  }
+    var self = this;
+    var callbacks = [];
+    executor(resolve.bind(self));
+
+    function resolve(value) {
+        setTimeout(() => {
+            self.data = value;
+            callbacks.forEach((cb) => cb(value));
+        });
+    }
 }
-Promise.prototype.then() = function (onResolved, onRejected) {
-  var self = this;
-  return new Promise((resolve) => {
-    self.callbacks.push(function () {
-      var result =
-        typeof onResolved === "function" ? onResolved(self.data) : self.data;
-      if (result instanceof Promise) resolve.then(result);
-      else resolve(result);
+
+Promise.prototype.then = function (onResolved, onRejected) {
+    var self = this;
+    return new Promise((resolve) => {
+        self.callbacks.push(function () {
+            var result =
+                typeof onResolved === "function" ? onResolved(self.data) : self.data;
+            if (result instanceof Promise) resolve.then(result);
+            else resolve(result);
+        });
     });
-  });
 };
 ```
 
@@ -106,138 +109,145 @@ Promise.prototype.then() = function (onResolved, onRejected) {
 
 ```js
 class Promise {
-  constructor(executor) {
-    if (typeof executor !== "function")
-      throw new TypeError(`Promise resolver ${executor} is not a function`);
-    this.status = "pending";
-    this.value = null;
-    this.callback = [];
-    try {
-      // 如果将方法绑定this，实例化的时候就能显式的看到有哪些属性
-      executor(this.resolve.bind(this), this.reject.bind(this));
-    } catch (error) {
-      this.reject(error);
+    constructor(executor) {
+        if (typeof executor !== "function")
+            throw new TypeError(`Promise resolver ${executor} is not a function`);
+        this.status = "pending";
+        this.value = null;
+        this.callback = [];
+        try {
+            // 如果将方法绑定this，实例化的时候就能显式的看到有哪些属性
+            executor(this.resolve.bind(this), this.reject.bind(this));
+        } catch (error) {
+            this.reject(error);
+        }
     }
-  }
-  then(onFulfilled, onRejected) {
-    return new Promise((resolve, reject) => {
-      // 前面的Promise是resolve时，会调用 onFulfilled
-      // 那么then的新Promise也resolve
-      // typeof onFulfilled !== 'function' && (onFulfilled = resolve);
-      if (typeof onFulfilled !== "function") onFulfilled = resolve;
-      if (typeof onRejected !== "function") onRejected = reject;
-      if (this.status === "pending") {
-        this.callback.push({
-          onFulfilled: () => {
-            setTimeout(() => {
-              try {
-                const result = onFulfilled.call(undefined, this.value);
-                resolve(result);
-              } catch (error) {
-                reject(error);
-              }
-            });
-          },
-          onRejected: () => {
-            setTimeout(() => {
-              try {
-                const result = onRejected.call(undefined, this.value);
-                resolve(result);
-              } catch (error) {
-                reject(error);
-              }
-            });
-          },
+
+    then(onFulfilled, onRejected) {
+        return new Promise((resolve, reject) => {
+            // 前面的Promise是resolve时，会调用 onFulfilled
+            // 那么then的新Promise也resolve
+            // typeof onFulfilled !== 'function' && (onFulfilled = resolve);
+            if (typeof onFulfilled !== "function") onFulfilled = resolve;
+            if (typeof onRejected !== "function") onRejected = reject;
+            if (this.status === "pending") {
+                this.callback.push({
+                    onFulfilled: () => {
+                        setTimeout(() => {
+                            try {
+                                const result = onFulfilled.call(undefined, this.value);
+                                resolve(result);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    },
+                    onRejected: () => {
+                        setTimeout(() => {
+                            try {
+                                const result = onRejected.call(undefined, this.value);
+                                resolve(result);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    },
+                });
+            }
+            if (this.status === "fulfilled") {
+                setTimeout(() => {
+                    try {
+                        const result = onFulfilled.call(undefined, this.value);
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+            if (this.status === "rejected") {
+                setTimeout(() => {
+                    try {
+                        const result = onRejected.call(undefined, this.value);
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
         });
-      }
-      if (this.status === "fulfilled") {
-        setTimeout(() => {
-          try {
-            const result = onFulfilled.call(undefined, this.value);
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-      if (this.status === "rejected") {
-        setTimeout(() => {
-          try {
-            const result = onRejected.call(undefined, this.value);
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-    });
-  }
-  resolve(value) {
-    if (this.status !== "pending") return;
-    if (value === this) throw new TypeError("Chaining cycle detected for promise");
-    if (value instanceof Object) {
-      const then = value.then;
-      if (typeof then === "function") {
-        return then.call(value, this.resolve.bind(this), this.reject.bind(this));
-      }
     }
-    this.status = "fulfilled";
-    this.value = value;
-    // 如果回调函数数组中有值，说明之前执行过then，需要调用then接受的函数
-    this.callback.forEach((callback) => callback.onFulfilled.call(undefined, value));
-  }
-  reject(reason) {
-    if (this.status !== "pending") return;
-    if (reason === this) throw new TypeError("Chaining cycle detected for promise");
-    if (reason instanceof Object) {
-      const then = reason.then;
-      if (typeof then === "function") {
-        return then.call(reason, this.resolve.bind(this), this.reject.bind(this));
-      }
+
+    resolve(value) {
+        if (this.status !== "pending") return;
+        if (value === this) throw new TypeError("Chaining cycle detected for promise");
+        if (value instanceof Object) {
+            const then = value.then;
+            if (typeof then === "function") {
+                return then.call(value, this.resolve.bind(this), this.reject.bind(this));
+            }
+        }
+        this.status = "fulfilled";
+        this.value = value;
+        // 如果回调函数数组中有值，说明之前执行过then，需要调用then接受的函数
+        this.callback.forEach((callback) => callback.onFulfilled.call(undefined, value));
     }
-    this.status = "rejected";
-    this.value = reason;
-    this.callback.forEach((callback) => callback.onRejected.call(undefined, reason));
-  }
-  // 静态方法在程序开始时生成内存，实例方法在程序运行过程中生成内存
-  // 所以静态方法可以直接调用，实例方法要先生成示例，通过实例调用方法，静态速度很快，但多了会产生内存
-  static resolve(value) {
-    return new Promise((resolve, reject) => {
-      if (value instanceof Promise) {
-        value.then(resolve, reject);
-      } else {
-        resolve(value);
-      }
-    });
-  }
-  static reject(reason) {
-    return new Promise((resolve, reject) => {
-      if (reason instanceof Promise) {
-        reason.then(resolve, reject);
-      } else {
-        reject(reason);
-      }
-    });
-  }
-  static all(promiseArr) {
-    return new Promise((resolve, reject) => {
-      const results = [];
-      promiseArr.forEach((promise) =>
-        promise.then(
-          (value) => {
-            results.push(value);
-            if (results.length === promiseArr.length) resolve(results);
-          },
-          (err) => reject(err)
-        )
-      );
-    });
-  }
-  static race(promiseArr) {
-    return Promise((resolve, reject) =>
-      promiseArr.forEach((promise) => promise.then(resolve, reject))
-    );
-  }
+
+    reject(reason) {
+        if (this.status !== "pending") return;
+        if (reason === this) throw new TypeError("Chaining cycle detected for promise");
+        if (reason instanceof Object) {
+            const then = reason.then;
+            if (typeof then === "function") {
+                return then.call(reason, this.resolve.bind(this), this.reject.bind(this));
+            }
+        }
+        this.status = "rejected";
+        this.value = reason;
+        this.callback.forEach((callback) => callback.onRejected.call(undefined, reason));
+    }
+
+    // 静态方法在程序开始时生成内存，实例方法在程序运行过程中生成内存
+    // 所以静态方法可以直接调用，实例方法要先生成示例，通过实例调用方法，静态速度很快，但多了会产生内存
+    static resolve(value) {
+        return new Promise((resolve, reject) => {
+            if (value instanceof Promise) {
+                value.then(resolve, reject);
+            } else {
+                resolve(value);
+            }
+        });
+    }
+
+    static reject(reason) {
+        return new Promise((resolve, reject) => {
+            if (reason instanceof Promise) {
+                reason.then(resolve, reject);
+            } else {
+                reject(reason);
+            }
+        });
+    }
+
+    static all(promiseArr) {
+        return new Promise((resolve, reject) => {
+            const results = [];
+            promiseArr.forEach((promise) =>
+                promise.then(
+                    (value) => {
+                        results.push(value);
+                        if (results.length === promiseArr.length) resolve(results);
+                    },
+                    (err) => reject(err)
+                )
+            );
+        });
+    }
+
+    static race(promiseArr) {
+        return Promise((resolve, reject) =>
+            promiseArr.forEach((promise) => promise.then(resolve, reject))
+        );
+    }
 }
 ```
 
@@ -247,53 +257,54 @@ await 是让出线程的标志。await 后面的表达式会先执行一遍，�
 
 ```js
 function asyncToGenerator(generatorFunc) {
-  return function () {
-    const gen = generatorFunc.apply(this, arguments);
-    // 返回一个Promise因为外部时用.then的方式,或者await的方式去使用这个函数的返回值的
-    //var test = asyncToGenerator(testG)
-    // test().then(res => console.log(res))
-    return new Promise((resolve, reject) => {
-      // 内部定义一个step函数,用来跨越yield的阻碍
-      // key有next和throw两种取值,分别对应了gen的next和throw
-      // args 用来把promise resolve出来的值交给下一个yield
-      function step(key, arg) {
-        let generatorResult;
-        // 报错就把Promise给reject掉,外部可以通过reject获取到错误
-        try {
-          generatorResult = gen[key](arg);
-        } catch (error) {
-          return reject(error);
-        }
-        const { value, done } = generatorResult;
-        if (done) {
-          // 如果已经完成了 就直接resolve这个promise
-          // 这个done是最后一次调用next后才会为true
-          // 如果是{done: true, value: 'success'},
-          // value也就是generator函数最后的返回值
-          return resolve(value);
-        } else {
-          // 除了最后结束的时候外，每次调用gen.next()
-          // 其实是返回{value:promise,done:false}
-          // !注意promise.resolve可以接受一个promise为参数
-          // 并且这个promise参数被resolve的时候，这个then才会被调用
-          return Promise.resolve(value).then(
-            // value 这个promise被resolve的时候，执行next
-            // 只要done不是true的时候，就会递归的往下解开promise。在done为true了，整个promise被resolve了
-            function onResolved(val) {
-              step("next", val);
-            },
-            // 如果promise被reject了，就再次进入step函数
-            // 不同的是，这次的try catch中调用的是gen.throw（err）
-            // 被catch到后，把promise给reject掉
-            function onRejected(err) {
-              step("throw", err);
+    return function () {
+        const gen = generatorFunc.apply(this, arguments);
+        // 返回一个Promise因为外部时用.then的方式,或者await的方式去使用这个函数的返回值的
+        //var test = asyncToGenerator(testG)
+        // test().then(res => console.log(res))
+        return new Promise((resolve, reject) => {
+            // 内部定义一个step函数,用来跨越yield的阻碍
+            // key有next和throw两种取值,分别对应了gen的next和throw
+            // args 用来把promise resolve出来的值交给下一个yield
+            function step(key, arg) {
+                let generatorResult;
+                // 报错就把Promise给reject掉,外部可以通过reject获取到错误
+                try {
+                    generatorResult = gen[key](arg);
+                } catch (error) {
+                    return reject(error);
+                }
+                const {value, done} = generatorResult;
+                if (done) {
+                    // 如果已经完成了 就直接resolve这个promise
+                    // 这个done是最后一次调用next后才会为true
+                    // 如果是{done: true, value: 'success'},
+                    // value也就是generator函数最后的返回值
+                    return resolve(value);
+                } else {
+                    // 除了最后结束的时候外，每次调用gen.next()
+                    // 其实是返回{value:promise,done:false}
+                    // !注意promise.resolve可以接受一个promise为参数
+                    // 并且这个promise参数被resolve的时候，这个then才会被调用
+                    return Promise.resolve(value).then(
+                        // value 这个promise被resolve的时候，执行next
+                        // 只要done不是true的时候，就会递归的往下解开promise。在done为true了，整个promise被resolve了
+                        function onResolved(val) {
+                            step("next", val);
+                        },
+                        // 如果promise被reject了，就再次进入step函数
+                        // 不同的是，这次的try catch中调用的是gen.throw（err）
+                        // 被catch到后，把promise给reject掉
+                        function onRejected(err) {
+                            step("throw", err);
+                        }
+                    );
+                }
             }
-          );
-        }
-      }
-      step("next");
-    });
-  };
+
+            step("next");
+        });
+    };
 }
 ```
 
@@ -305,41 +316,45 @@ function asyncToGenerator(generatorFunc) {
 
 ```js
 class LRUCache {
-  constructor(capacity) {
-    this.keys = [];
-    this.cache = Object.create(null);
-    this.capacity = capacity;
-  }
-  get(key) {
-    if (this.cache[key]) {
-      remove(this.keys, key);
-      this.keys.push(key);
-      return this.cache[this];
+    constructor(capacity) {
+        this.keys = [];
+        this.cache = Object.create(null);
+        this.capacity = capacity;
     }
-    return false;
-  }
-  put(key, value) {
-    if (this.cache[key]) {
-      this.cache[key] = value;
-      remove(this.keys, key);
-      this.keys.push(key);
-    } else {
-      this.keys.push(key);
-      this.cache[key] = value;
-      if (this.keys.length > this.capacity)
-        removeCache(this.cache, this.keys, this.keys[0]);
+
+    get(key) {
+        if (this.cache[key]) {
+            remove(this.keys, key);
+            this.keys.push(key);
+            return this.cache[this];
+        }
+        return false;
     }
-  }
+
+    put(key, value) {
+        if (this.cache[key]) {
+            this.cache[key] = value;
+            remove(this.keys, key);
+            this.keys.push(key);
+        } else {
+            this.keys.push(key);
+            this.cache[key] = value;
+            if (this.keys.length > this.capacity)
+                removeCache(this.cache, this.keys, this.keys[0]);
+        }
+    }
 }
+
 function remove(arr, key) {
-  if (arr.length) {
-    const index = arr.findIndex((item) => item === key);
-    if (index > -1) arr.splice(index, 1);
-  }
+    if (arr.length) {
+        const index = arr.findIndex((item) => item === key);
+        if (index > -1) arr.splice(index, 1);
+    }
 }
+
 function removeCache(cache, keys, key) {
-  cache(key) = null;
-  remove(keys, key);
+    cache[key] = null;
+    remove(keys, key);
 }
 ```
 
@@ -347,25 +362,27 @@ function removeCache(cache, keys, key) {
 
 ```js
 class LRUCache {
-  constructor(capacity, cache = new Map()) {
-    this.$cache = cache;
-    this.$capacity = capacity;
-  }
-  get(key) {
-    if (this.$cache.has(key)) {
-      let temp = this.$cache.get(key);
-      this.$cache.delete(key);
-      this.$cache.set(key, temp);
-      return temp;
+    constructor(capacity, cache = new Map()) {
+        this.$cache = cache;
+        this.$capacity = capacity;
     }
-    return undefined;
-  }
-  put(key, value) {
-    if (this.$cache.has(key)) this.$cache.delete(key);
-    else if (this.$cache.size >= this.$capacity)
-      this.$cache.delete(this.$cache.keys().next().value);
-    this.$cache.set(key, value);
-  }
+
+    get(key) {
+        if (this.$cache.has(key)) {
+            let temp = this.$cache.get(key);
+            this.$cache.delete(key);
+            this.$cache.set(key, temp);
+            return temp;
+        }
+        return undefined;
+    }
+
+    put(key, value) {
+        if (this.$cache.has(key)) this.$cache.delete(key);
+        else if (this.$cache.size >= this.$capacity)
+            this.$cache.delete(this.$cache.keys().next().value);
+        this.$cache.set(key, value);
+    }
 }
 ```
 
@@ -374,22 +391,22 @@ class LRUCache {
 ### 快排
 
 ```JS
-function quickSort(arr, start = 0, end = arr.length - 1){
-  let pos = start - 1
-  let pivot = arr[end]
-  if(start<end){
-    for(let i = start; i<= end; i++){
-      if(arr[i] <= pivot){
-        let temp = arr[i]
-        pos++
-        arr[i] = arr[pos]
-        arr[pos] = temp
-      }
+function quickSort(arr, start = 0, end = arr.length - 1) {
+    let pos = start - 1
+    let pivot = arr[end]
+    if (start < end) {
+        for (let i = start; i <= end; i++) {
+            if (arr[i] <= pivot) {
+                let temp = arr[i]
+                pos++
+                arr[i] = arr[pos]
+                arr[pos] = temp
+            }
+        }
+        quickSort(arr, start, pos - 1)
+        quickSort(arr, pos + 1, end)
     }
-    quickSort(arr, start, pos - 1)
-    quickSort(arr, pos + 1, end)
-  }
-  return arr
+    return arr
 }
 ```
 
@@ -397,20 +414,21 @@ function quickSort(arr, start = 0, end = arr.length - 1){
 
 ```javascript
 function mergeSort(arr) {
-  if (arr.length <= 1) return arr;
-  const midIndex = arr.length / 2 || 0,
-    leftArr = arr.slice(0, midIndex),
-    rightArr = arr.slice(midIndex, arr.length);
-  return merger(mergeSort(leftArr), mergeSort(rightArr));
+    if (arr.length <= 1) return arr;
+    const midIndex = arr.length / 2 || 0,
+        leftArr = arr.slice(0, midIndex),
+        rightArr = arr.slice(midIndex, arr.length);
+    return merger(mergeSort(leftArr), mergeSort(rightArr));
 }
+
 function merger(leftArr, rightArr) {
-  const result = [];
-  while (leftArr.length && rightArr.length) {
-    leftArr[0] <= rightArr[0] ? result.push(leftArr.shift()) : result.push(rightArr.shift());
-  }
-  while (leftArr.length) result.push(leftArr.shift());
-  while (rightArr.length) result.push(rightArr.shift());
-  return result;
+    const result = [];
+    while (leftArr.length && rightArr.length) {
+        leftArr[0] <= rightArr[0] ? result.push(leftArr.shift()) : result.push(rightArr.shift());
+    }
+    while (leftArr.length) result.push(leftArr.shift());
+    while (rightArr.length) result.push(rightArr.shift());
+    return result;
 }
 ```
 
@@ -432,18 +450,18 @@ function merger(leftArr, rightArr) {
  * @param {boolean} leading 是否立即执行回调函数
  */
 const debounce = (fn, wait = 300, leading = true) => {
-  let timeId, result;
-  return function (...args) {
-    timeId && clearTimeout(timeId);
-    if (leading) {
-      if (!timeId) result = fn.apply(this, args);
-      timeId = setTimeout(() => (timeId = null), wait);
-    } else {
-      timeId = setTimeout(() => (result = fn.apply(this, args)), wait);
-    }
-    return result;
-  };
-};
+        let timeId, result;
+        return function (...args) {
+            timeId && clearTimeout(timeId);
+            if (leading) {
+                if (!timeId) result = fn.apply(this, args);
+                timeId = setTimeout(() => (timeId = null), wait);
+            } else {
+                timeId = setTimeout(() => (result = fn.apply(this, args)), wait);
+            }
+            return result;
+        };
+    };
 ```
 
 ### 函数节流
@@ -454,15 +472,15 @@ const debounce = (fn, wait = 300, leading = true) => {
 
 ```js
 const throttle = (fn, wait = 300) => {
-  let timeId;
-  return function (...args) {
-    if (!timeId) {
-      timeId = setTimeOut(() => {
-        timeId = null;
-        return (result = fn.apply(this, ...args));
-      }, wait);
-    }
-  };
+    let timeId;
+    return function (...args) {
+        if (!timeId) {
+            timeId = setTimeOut(() => {
+                timeId = null;
+                return (result = fn.apply(this, ...args));
+            }, wait);
+        }
+    };
 };
 ```
 
@@ -470,15 +488,15 @@ const throttle = (fn, wait = 300) => {
 
 ```js
 const throttle = (fn, wait = 300) => {
-  let prev = 0,
-    result;
-  return function (...args) {
-    let now = +new Date();
-    if (now - prev > wait) {
-      prev = now;
-      return (result = fn.apply(this, ...args));
-    }
-  };
+    let prev = 0,
+        result;
+    return function (...args) {
+        let now = +new Date();
+        if (now - prev > wait) {
+            prev = now;
+            return (result = fn.apply(this, ...args));
+        }
+    };
 };
 ```
 
@@ -496,50 +514,49 @@ const throttle = (fn, wait = 300) => {
  * @param {boolean} first 开始触发时是否立即执行
  * @param {boolean} last 停止触发时是否继续执行,与first不呢同时设置为false
  **/
-const throttle = (fn, wait = 300, { first = true, last = true } = {}, ...args) => {
-  let timeId,
-    args,
-    prev = 0;
-  const later = (args) => {
-    timeId && clearTimeout(timeId);
-    timeId = setTimeout(() => {
-      timeId = null;
-      fn.apply(this, args);
-    }, wait);
-  };
-  return function () {
-    let now = Date.now();
-    let remaining = wait - (now - prev);
-    if (!prev && first === false) prev = now;
-    if (!first) return later(args);
-    if (remaining <= 0 || remaining > wait) {
-      fn.apply(this, args);
-      prev = now;
-    } else if (!timeId && last) later(args);
-  };
-};
+const throttle = (fn, wait = 300, {first = true, last = true} = {}, ...args) => {
+        let timeId,
+            prev = 0;
+        const later = (args) => {
+            timeId && clearTimeout(timeId);
+            timeId = setTimeout(() => {
+                timeId = null;
+                fn.apply(this, args);
+            }, wait);
+        };
+        return function () {
+            let now = Date.now();
+            let remaining = wait - (now - prev);
+            if (!prev && first === false) prev = now;
+            if (!first) return later(args);
+            if (remaining <= 0 || remaining > wait) {
+                fn.apply(this, args);
+                prev = now;
+            } else if (!timeId && last) later(args);
+        };
+    };
 ```
 
 ## 事件委托
 
 ```js
 function delegate(element, elementType, selector, fn) {
-  element.addEventListener(
-    eventType,
-    (e) => {
-      let el = e.target;
-      while (!el.matches(selector)) {
-        if (element === el) {
-          el = null;
-          break;
-        }
-        el = el.parentNode;
-      }
-      el && fn.call(el, e, el);
-    },
-    true
-  );
-  return element;
+    element.addEventListener(
+        eventType,
+        (e) => {
+            let el = e.target;
+            while (!el.matches(selector)) {
+                if (element === el) {
+                    el = null;
+                    break;
+                }
+                el = el.parentNode;
+            }
+            el && fn.call(el, e, el);
+        },
+        true
+    );
+    return element;
 }
 ```
 
@@ -547,26 +564,26 @@ function delegate(element, elementType, selector, fn) {
 
 ```js
 var dragging = false,
-  position;
+    position;
 xxx.addEventListener("mousedown", (e) => {
-  dragging = true;
-  position = [e.clientX, e.clientY];
+    dragging = true;
+    position = [e.clientX, e.clientY];
 });
 
 document.addEventListener("mousemove", (e) => {
-  if (!dragging) return;
-  const x = e.clientX;
-  const y = e.clientY;
-  const deltaX = x - position[0];
-  const deltaY = y - position[1];
-  const left = parseInt(xxx.style.left || 0);
-  const top = parseInt(xxx.style.top || 0);
-  xxx.style.left = left + deltaX + "px";
-  xxx.style.top = top + deltaY + "px";
-  position = [x, y];
+    if (!dragging) return;
+    const x = e.clientX;
+    const y = e.clientY;
+    const deltaX = x - position[0];
+    const deltaY = y - position[1];
+    const left = parseInt(xxx.style.left || 0);
+    const top = parseInt(xxx.style.top || 0);
+    xxx.style.left = left + deltaX + "px";
+    xxx.style.top = top + deltaY + "px";
+    position = [x, y];
 });
 document.addEventListener("mouseup", function (e) {
-  dragging = false;
+    dragging = false;
 });
 ```
 
@@ -581,12 +598,12 @@ const isDate = isType("Date");
 const isRegExp = isType("RegExp");
 
 const deepClone = (obj, map = new Map()) => {
-  if (typeof obj !== "object" || isNull(obj) || isDate(obj) || isRegExp(obj)) return obj;
-  if (map.has(obj)) return map.get(obj);
-  const res = isArray(obj) ? [] : {};
-  map.set(obj, res);
-  Reflect.ownKeys(obj).forEach((key) => (res[key] = deepCopy(obj[key], map)));
-  return res;
+    if (typeof obj !== "object" || isNull(obj) || isDate(obj) || isRegExp(obj)) return obj;
+    if (map.has(obj)) return map.get(obj);
+    const res = isArray(obj) ? [] : {};
+    map.set(obj, res);
+    Reflect.ownKeys(obj).forEach((key) => (res[key] = deepCopy(obj[key], map)));
+    return res;
 };
 ```
 
@@ -619,17 +636,21 @@ export type WildCardEventHandlerList = Array<WildcardHandler>;
 export type EventHandlerMap = Map<EventType, EventHandlerList | WildCardEventHandlerList>;
 
 export interface Emitter {
-  all: EventHandlerMap;
+    all: EventHandlerMap;
 
-  on<T = any>(type: EventType, handler: Handler<T>): void;
-  on(type: "*", handler: WildcardHandler): void;
+    on<T = any>(type: EventType, handler: Handler<T>): void;
 
-  off<T = any>(type: EventType, handler: Handler<T>): void;
-  off(type: "*", handler: WildcardHandler): void;
+    on(type: "*", handler: WildcardHandler): void;
 
-  emit<T = any>(type: EventType, event?: T): void;
-  emit(type: "*", event?: any): void;
-  clear(): void;
+    off<T = any>(type: EventType, handler: Handler<T>): void;
+
+    off(type: "*", handler: WildcardHandler): void;
+
+    emit<T = any>(type: EventType, event?: T): void;
+
+    emit(type: "*", event?: any): void;
+
+    clear(): void;
 }
 
 /**
@@ -638,67 +659,67 @@ export interface Emitter {
  * @returns {Mitt}
  */
 export default function mitt(all?: EventHandlerMap): Emitter {
-  all = all || new Map();
+    all = all || new Map();
 
-  return {
-    /**
-     * A Map of event names to registered handler functions.
-     */
-    all,
+    return {
+        /**
+         * A Map of event names to registered handler functions.
+         */
+        all,
 
-    /**
-     * Register an event handler for the given type.
-     * @param {string|symbol} type Type of event to listen for, or `"*"` for all events
-     * @param {Function} handler Function to call in response to given event
-     * @memberOf mitt
-     */
-    on<T = any>(type: EventType, handler: Handler<T>) {
-      const handlers = all?.get(type);
-      const added = handlers && handlers.push(handler);
-      if (!added) {
-        all?.set(type, [handler]);
-      }
-    },
+        /**
+         * Register an event handler for the given type.
+         * @param {string|symbol} type Type of event to listen for, or `"*"` for all events
+         * @param {Function} handler Function to call in response to given event
+         * @memberOf mitt
+         */
+        on<T = any>(type: EventType, handler: Handler<T>) {
+            const handlers = all?.get(type);
+            const added = handlers && handlers.push(handler);
+            if (!added) {
+                all?.set(type, [handler]);
+            }
+        },
 
-    /**
-     * Remove an event handler for the given type.
-     * @param {string|symbol} type Type of event to unregister `handler` from, or `"*"`
-     * @param {Function} handler Handler function to remove
-     * @memberOf mitt
-     */
-    off<T = any>(type: EventType, handler: Handler<T>) {
-      const handlers = all?.get(type);
-      if (handlers) {
-        handlers.splice(handlers.indexOf(handler) >>> 0, 1);
-      }
-    },
+        /**
+         * Remove an event handler for the given type.
+         * @param {string|symbol} type Type of event to unregister `handler` from, or `"*"`
+         * @param {Function} handler Handler function to remove
+         * @memberOf mitt
+         */
+        off<T = any>(type: EventType, handler: Handler<T>) {
+            const handlers = all?.get(type);
+            if (handlers) {
+                handlers.splice(handlers.indexOf(handler) >>> 0, 1);
+            }
+        },
 
-    /**
-     * Invoke all handlers for the given type.
-     * If present, `"*"` handlers are invoked after type-matched handlers.
-     *
-     * Note: Manually firing "*" handlers is not supported.
-     *
-     * @param {string|symbol} type The event type to invoke
-     * @param {Any} [evt] Any value (object is recommended and powerful), passed to each handler
-     * @memberOf mitt
-     */
-    emit<T = any>(type: EventType, evt: T) {
-      ((all?.get(type) || []) as EventHandlerList).slice().map((handler) => {
-        handler(evt);
-      });
-      ((all?.get("*") || []) as WildCardEventHandlerList).slice().map((handler) => {
-        handler(type, evt);
-      });
-    },
+        /**
+         * Invoke all handlers for the given type.
+         * If present, `"*"` handlers are invoked after type-matched handlers.
+         *
+         * Note: Manually firing "*" handlers is not supported.
+         *
+         * @param {string|symbol} type The event type to invoke
+         * @param {Any} [evt] Any value (object is recommended and powerful), passed to each handler
+         * @memberOf mitt
+         */
+        emit<T = any>(type: EventType, evt: T) {
+            ((all?.get(type) || []) as EventHandlerList).slice().map((handler) => {
+                handler(evt);
+            });
+            ((all?.get("*") || []) as WildCardEventHandlerList).slice().map((handler) => {
+                handler(type, evt);
+            });
+        },
 
-    /**
-     * Clear all
-     */
-    clear() {
-      this.all.clear();
-    },
-  };
+        /**
+         * Clear all
+         */
+        clear() {
+            this.all.clear();
+        },
+    };
 }
 ```
 
@@ -706,64 +727,66 @@ export default function mitt(all?: EventHandlerMap): Emitter {
 
 ```ts
 interface TreeHelperConfig {
-  id: string;
-  children: string;
-  pid: string;
-}
-function listToTree<T = any>(
-  list: any[],
-  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
-): T[] {
-  const nodeMap = new Map();
-  const result: T[] = [];
-  for (const node of list) {
-    node[children] = node[children] || [];
-    nodeMap.set(node[id], node);
-  }
-  for (const node of list) {
-    const parent = nodeMap.get(node[pid]);
-    (parent ? parent.children : result).push(node);
-  }
-  return result;
+    id: string;
+    children: string;
+    pid: string;
 }
 
-function treeToList<T=any>(
-  tree: any,
-  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
-):T {
-  const result:any = [...tree]
-  for( let i =0;i<result.length;i++>){
-    if(!result[i][children!]) continue
-    result.splice(i+1,0,...result[i][children!])
-  }
-  return result
+function listToTree<T = any>(
+    list: any[],
+    {id = "id", children = "children", pid = "pid"}: Partial<TreeHelperConfig> = {}
+): T[] {
+    const nodeMap = listToMap(list, item => ({key: id, value: item}), new Map())
+    const result: T[] = [];
+    for (const node of list) {
+        const parent = nodeMap.get(node[pid]);
+        (parent ? (parent.children || (parent.children = [])) : result).push(node)
+    }
+    return result;
 }
+
+function treeToList<T = any>(
+    tree: any,
+    {id = "id", children = "children", pid = "pid"}: Partial<TreeHelperConfig> = {}
+): T {
+    const result: any = [...tree]
+    for (let i = 0; i < result.length; i++) {
+        if (!result[i][children!]) continue
+        result.splice(i + 1, 0, ...result[i][children!])
+    }
+    return result
+}
+
 function findNode<T = any>(
-  tree: any,
-  func: Fn,
-  { children } : Partial<TreeHelperConfig> = {},
+    tree: any,
+    func: Fn,
+    {children}: Partial<TreeHelperConfig> = {},
 ): T | null {
-  const list = [...tree];
-  for (const node of list) {
-    if (func(node)) return node;
-    node[children!] && list.push(...node[children!]);
-  }
-  return null;
+    const list = [...tree];
+    for (const node of list) {
+        if (func(node)) return node;
+        node[children!] && list.push(...node[children!]);
+    }
+    return null;
 }
+
+type ListToMapGetKeyValue = (item: T, index: number, items: T[]) => { key: string | symbol, value: T | R }
 
 function listToMap<T = any, R = any>(
-  list: T[],
-  getKey: string | ((T) => string) = 'id',
-  getValue: (T) => T | R = (item) => item,
-  map: Map<string, T | R> | any = {},
-): Record<string, T | R> | Map<string, T | R> {
-  return list.reduce((acc, cur) => {
-    const key = isFunction(getKey) ? getKey(cur) : getKey;
-    const value = getValue(cur);
-    Reflect.set(acc, key, value);
-    return acc;
-  }, map);
+    list: T[],
+    getKeyValue: ListToMapGetKeyValue = (item) => ({
+        key: "id",
+        value: item,
+    }),
+    map: Map<string, T | R> | any = {}
+): Record<string, R> | Map<string, T | R> {
+    return list.reduce((acc, cur, curIndex, curArr) => {
+        const {key, value} = getKeyValue(cur, curIndex, curArr);
+        Reflect.set(acc, key, value);
+        return acc;
+    }, map);
 }
+
 
 ```
 

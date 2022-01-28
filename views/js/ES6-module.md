@@ -5,7 +5,6 @@ tags:
   - JavaScript
 categories:
   - frontEnd
-publish: false
 ---
 
 ## 编译时静态检查
@@ -65,7 +64,7 @@ import defaultName from "module.js";
 // import type 方式
 import { export1, export2 } from "modules";
 import { export1 as ex1, export2 as ex2 } from "...";
-import * as module from '...
+import * as module from '...'
 
 // 同时引入export default和export type
 import defaultName ,{export1,export2} from '...'

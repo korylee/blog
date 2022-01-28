@@ -109,7 +109,7 @@ child.$mount(vnode.elm);
 
 那么如果有`父->子->孙`三个组件，那么他们的初始化生命周期是这样的：
 
-```js
+```
 父 beforeCreate
 父 create
 父 beforeMount

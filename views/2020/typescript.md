@@ -276,7 +276,7 @@ function isString(value){
 }
 function f(x:string|number){
   if(isString(x)) return x.length //error 类型string|number 上不存在属性"length"
-  ...
+  // ...
 }
 ```
 
@@ -286,7 +286,7 @@ function f(x:string|number){
 
 ```ts
 function isString(value:unknown) :value is string {
-  return Object.prototype.toString.call(value) === '[object String]
+  return Object.prototype.toString.call(value) === '[object String]'
 }
 ```
 
@@ -434,7 +434,7 @@ typescript 在`lib.es5.d.ts`中内置了几个映射类型
 
 - `Record<K, T>` --生成一个属性为 K, 类型为 T 的类型集合
 - ```ts
-  type Record<K extends keyof any,T>{
+  type Record<K extends keyof any,T> = {
     [P in K]:T
   }
   ```
@@ -563,7 +563,7 @@ type UnionType = isNumber<Union>; //'notNumber'| 'isNumber'
 实际上,extends 运算会变成如下形式
 
 ```ts
-(string extends number? 'isNumber': 'NotNumber')|(number extends number? 'isNumber': 'NotNumber')
+ (string extends number? 'isNumber': 'NotNumber')|(number extends number? 'isNumber': 'NotNumber')
 ```
 
 `Extract`就是基于此类型,再配合`never`幺元的特性实现的
@@ -645,6 +645,7 @@ app(1);
 // types/abcd/index.d.ts
 export let a: number;
 export function b(): number;
+export function b(){}
 ```
 
 ::: tips 总结

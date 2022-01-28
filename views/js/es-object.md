@@ -241,7 +241,7 @@ console.log(prop); //{value: "张三", writable: true, enumerable: true, configu
 - 参数: obj(必须), 目标对象
 
 ```js
-ar obj = {};
+const obj = {};
 obj.say = function(){};
 Object.defineProperties(obj,{
     name:{
@@ -509,7 +509,7 @@ console.log([...[, "a"].entries()]); // [[0, undefined], [1, "a"]]
 :::
 
 ```js
-[1,NaN，3].includes(NaN) //true
+[1,NaN,3].includes(NaN) //true
 ```
 
 #### 嵌套数组转一维数组
@@ -1310,7 +1310,7 @@ console.log(parseFloat("i am 23")); //NaN
 ```js
 console.log(Number(new Boolean(true)))// 1
 console.log(Number(new Date())); //1586553414703
-console.log(Number('999))// 999
+console.log(Number('999'))// 999
 console.log(Number('999 888')); //NaN
 ```
 
