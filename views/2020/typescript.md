@@ -838,7 +838,7 @@ node 模块解析方式
 
 ### 15. tsconfig.json 全解析
 
-```json
+```json5
 {
   "compilerOptions": {
     /*基本选项*/

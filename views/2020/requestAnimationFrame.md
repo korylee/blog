@@ -121,7 +121,7 @@ function setTimeout(callback,interval){
   const loop = () => {
     timer = window.requestAnimationFrame(loop)
     endTime = now()
-    of(endTime-startTime >= interval){
+    if(endTime-startTime >= interval){
       callback(timer)
       window.cancelAnimationFrame(timer)
     }
