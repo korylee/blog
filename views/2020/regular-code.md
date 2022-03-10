@@ -996,6 +996,55 @@ function to(
 const [err, {data}] = await awaitTo(request.get(``));
 ```
 
+### cached
+函数返回值缓存是优化一个函数的常用手段。(同步, 异步皆可)
+我们可以将函数、输入参数、返回值全部保存起来，当下次以同样的参数调用这个函数时，直接使用存储的结果作为返回(不需要重新计算)。
+
+这种方法是有代价的，我们实际是在用内存空间换取运行时间。此方法中使用了 LRUCache(Least Recently Used, 最近最少使用)来优化存储空间
+
+>注意: 如果是请求, 请谨慎使用, 如果前端的数据和后端数据不一致,请求还一直拿缓存的值就玩大发了
+>例如像类目列表, 品牌列表等很久才会更新, 请求频率高且数据量大的才考虑用(ps: 整个协商缓存多好, 还得前端在这想办法)
+```ts
+const generateKey = (arg) => {
+  if (isString(arg)) return arg;
+  else if (Array.isArray(arg))
+    return arg.reduce((acc, cur) => (acc ? `${acc},${generateKey(cur)}` : generateKey(cur)), "");
+  else if (isRealObject(arg)) {
+    const keys = Object.keys(arg).sort();
+    const res = keys.reduce((acc, cur) => {
+      const value = arg[cur];
+      return acc ? `${acc},${cur}=${generateKey(value)}` : `${cur}=${generateKey(value)}`;
+    }, "");
+    return `{${res}}`;
+  }
+  return String(arg);
+};
+
+export function cached<T>(func: T, capacity: number = 100): T {
+  const cache = new LRUCache(capacity);
+  return async function(...args) {
+    const key = generateKey(args);
+    const target = cache.get(key);
+    if (target) {
+      if (!target?.then) return target;
+      const [err, data] = await to(target);
+      if (!err) return data;
+    }
+    const result = func(...args);
+    cache.put(key, result);
+    return result;
+  };
+}
+```
+
+#### 用法
+
+```ts
+const getData = () => request.get(``);
+const cacheGetData = cached(getData);
+cacheGetData();
+//cacheGetData 与 detData 行为一致
+```
 ## 参考
 
 - [underscore 函数节流的实现](https://github.com/lessfish/underscore-analysis/issues/22)
