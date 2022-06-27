@@ -1,7 +1,7 @@
 ---
 home: true
 heroText: 扣肉同学的灌水博客
-tagline: 记录，成为更好的自己。
+tagline: 管他什么真理无穷，进一步有进一步的欣喜
 # heroImage: /hero.png
 # heroImageStyle: {
 #   maxWidth: '600px',
