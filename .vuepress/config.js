@@ -2,7 +2,7 @@ const isGhPages = () => process.env.GH_PAGES === "true";
 
 module.exports = {
   title: "kory's blog",
-  description: "记录，成为更好的自己。",
+  description: "管他什么真理无穷，进一步有进一步的欣喜",
   dest: "public",
   head: [
     ["link", { rel: "icon", href: "/favicon.ico" }],
@@ -34,7 +34,7 @@ module.exports = {
       // },
     ],
     sidebar: {
-      "/views/http/": ["", "http-base", "http-cross-domain", "front-end-security"],
+      "/views/http/": ["http-base", "http-cross-domain", "front-end-security"],
       "/views/dom/": ["intersection-observer", "resize-observer"],
       "/views/vue/": ["vue3-reactive"],
     },
