@@ -6,7 +6,6 @@ tags:
   - 学习笔记
 categories:
   - frontEnd
-  
 ---
 
 ## ES6 部分语法糖实现
@@ -76,177 +75,315 @@ Object.myCreate = (o, properties) => {
 
 ### promise 实现
 
-#### 精简版
-
 ```js
-function Promise(executor) {
-  var self = this;
-  var callbacks = [];
-  executor(resolve.bind(self));
-
-  function resolve(value) {
-    setTimeout(() => {
-      self.data = value;
-      callbacks.forEach((cb) => cb(value));
-    });
-  }
-}
-
-Promise.prototype.then = function (onResolved, onRejected) {
-  var self = this;
-  return new Promise((resolve) => {
-    self.callbacks.push(function () {
-      var result =
-          typeof onResolved === "function" ? onResolved(self.data) : self.data;
-      if (result instanceof Promise) resolve.then(result);
-      else resolve(result);
-    });
-  });
+const PROMISE_STATUS = {
+  PENDING: "pending",
+  FULFILLED: "fulfilled",
+  REJECTED: "rejected",
 };
-```
+const isFunction = (val) => typeof val === "function";
 
-#### 完整版
-
-```js
-class Promise {
+class MyPromise {
   constructor(executor) {
-    if (typeof executor !== "function")
-      throw new TypeError(`Promise resolver ${executor} is not a function`);
-    this.status = "pending";
-    this.value = null;
-    this.callback = [];
+    if (!isFunction(executor)) {
+      throw new Error(`Promise executor ${executor} is not a function`);
+    }
+    this._status = PROMISE_STATUS.PENDING;
+    this._reason = undefined;
+    this._result = undefined;
+    this._onSuccess = [];
+    this._onFail = [];
+    const _resolve = (result) => {
+      this._status = PROMISE_STATUS.FULFILLED;
+      this._result = result;
+      this._onFail.length = 0;
+      queueMicrotask(() => {
+        while (this._onSuccess.length) {
+          this._onSuccess.shift()();
+        }
+      });
+    };
+    const _reject = (reason) => {
+      this._status = PROMISE_STATUS.REJECTED;
+      this._reason = reason;
+      this._onSuccess.length = 0;
+      queueMicrotask(() => {
+        while (this._onFail.length) {
+          this._onFail.shift()();
+        }
+      });
+    };
+
+    const create = (callback) => (value) => {
+      let then;
+      if (isFunction(value) || (value !== null && typeof value === "object")) {
+        try {
+          then = value.then;
+        } catch (error) {
+          return reject(error);
+        }
+      }
+      if (isFunction(then)) {
+        if (value === this) {
+          return reject(new TypeError("Chaning cycle detected for promise"));
+        }
+        let called = false;
+        try {
+          then.call(
+            value,
+            (v) => {
+              if (called) return;
+              called = true;
+              resolve(v);
+            },
+            (e) => {
+              if (called) return;
+              called = true;
+              reject(e);
+            }
+          );
+        } catch (error) {
+          if (called) return;
+          reject(error);
+        }
+      } else {
+        callback(value);
+      }
+    };
+    const resolve = create(_resolve);
+    const reject = create(_reject);
     try {
-      // 如果将方法绑定this，实例化的时候就能显式的看到有哪些属性
-      executor(this.resolve.bind(this), this.reject.bind(this));
+      executor(resolve, reject);
     } catch (error) {
-      this.reject(error);
+      console.error(error);
+      reject(error);
     }
   }
 
   then(onFulfilled, onRejected) {
-    return new Promise((resolve, reject) => {
-      // 前面的Promise是resolve时，会调用 onFulfilled
-      // 那么then的新Promise也resolve
-      // typeof onFulfilled !== 'function' && (onFulfilled = resolve);
-      if (typeof onFulfilled !== "function") onFulfilled = resolve;
-      if (typeof onRejected !== "function") onRejected = reject;
-      if (this.status === "pending") {
-        this.callback.push({
-          onFulfilled: () => {
-            setTimeout(() => {
-              try {
-                const result = onFulfilled.call(undefined, this.value);
-                resolve(result);
-              } catch (error) {
-                reject(error);
-              }
-            });
-          },
-          onRejected: () => {
-            setTimeout(() => {
-              try {
-                const result = onRejected.call(undefined, this.value);
-                resolve(result);
-              } catch (error) {
-                reject(error);
-              }
-            });
-          },
+    return new MyPromise((resolve, reject) => {
+      const onSuccess = () => {
+        try {
+          const value = isFunction(onFulfilled) ? onFulfilled(this._result) : this._result;
+          resolve(value);
+        } catch (error) {
+          console.log(error);
+          reject(error);
+        }
+      };
+      const onFail = () => {
+        try {
+          isFunction(onRejected) ? reject(onRejected(this._reason)) : reject(this._reason);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      switch (this._status) {
+        case PROMISE_STATUS.FULFILLED:
+          queueMicrotask(onSuccess);
+          break;
+        case PROMISE_STATUS.REJECTED:
+          queueMicrotask(onFail);
+          break;
+        default:
+          this._onSuccess.push(onSuccess);
+          this._onFail.push(onFail);
+          break;
+      }
+    });
+  }
+
+  catch(onRejected) {
+    return this.then((_) => _, onRejected);
+  }
+
+  finally(onSettled) {
+    const illegal = !isFunction(onSettled);
+    return this.then(
+      (result) => {
+        if (illegal) return result;
+        return MyPromise.resolve(onSettled()).then(() => {
+          return result;
+        });
+      },
+      (reason) => {
+        if (illegal) throw reason;
+        return MyPromise.resolve(onSettled()).then(() => {
+          throw reason;
         });
       }
-      if (this.status === "fulfilled") {
-        setTimeout(() => {
-          try {
-            const result = onFulfilled.call(undefined, this.value);
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-      if (this.status === "rejected") {
-        setTimeout(() => {
-          try {
-            const result = onRejected.call(undefined, this.value);
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-    });
-  }
-
-  resolve(value) {
-    if (this.status !== "pending") return;
-    if (value === this) throw new TypeError("Chaining cycle detected for promise");
-    if (value instanceof Object) {
-      const then = value.then;
-      if (typeof then === "function") {
-        return then.call(value, this.resolve.bind(this), this.reject.bind(this));
-      }
-    }
-    this.status = "fulfilled";
-    this.value = value;
-    // 如果回调函数数组中有值，说明之前执行过then，需要调用then接受的函数
-    this.callback.forEach((callback) => callback.onFulfilled.call(undefined, value));
-  }
-
-  reject(reason) {
-    if (this.status !== "pending") return;
-    if (reason === this) throw new TypeError("Chaining cycle detected for promise");
-    if (reason instanceof Object) {
-      const then = reason.then;
-      if (typeof then === "function") {
-        return then.call(reason, this.resolve.bind(this), this.reject.bind(this));
-      }
-    }
-    this.status = "rejected";
-    this.value = reason;
-    this.callback.forEach((callback) => callback.onRejected.call(undefined, reason));
-  }
-
-  // 静态方法在程序开始时生成内存，实例方法在程序运行过程中生成内存
-  // 所以静态方法可以直接调用，实例方法要先生成示例，通过实例调用方法，静态速度很快，但多了会产生内存
-  static resolve(value) {
-    return new Promise((resolve, reject) => {
-      if (value instanceof Promise) {
-        value.then(resolve, reject);
-      } else {
-        resolve(value);
-      }
-    });
-  }
-
-  static reject(reason) {
-    return new Promise((resolve, reject) => {
-      if (reason instanceof Promise) {
-        reason.then(resolve, reject);
-      } else {
-        reject(reason);
-      }
-    });
-  }
-
-  static all(promiseArr) {
-    return new Promise((resolve, reject) => {
-      const results = [];
-      promiseArr.forEach((promise) =>
-          promise.then(
-              (value) => {
-                results.push(value);
-                if (results.length === promiseArr.length) resolve(results);
-              },
-              (err) => reject(err)
-          )
-      );
-    });
-  }
-
-  static race(promiseArr) {
-    return Promise((resolve, reject) =>
-        promiseArr.forEach((promise) => promise.then(resolve, reject))
     );
+  }
+
+  static resolve(result) {
+    return new MyPromise((resolve) => resolve(result));
+  }
+  static reject(reason) {
+    return new MyPromise((_, reject) => reject(reason));
+  }
+
+  static all(iterable) {
+    return new MyPromise((resolve, reject) => {
+      const iterator = iterable[Symbol.iterator]?.();
+      if (!iterator) {
+        reject(
+          TypeError(
+            `${typeof iterable} ${iterable} is not Iterable (cannot read property Symbol(Symbol.iterator))`
+          )
+        );
+      }
+      const results = [];
+      let complete = 0;
+      let size = 0;
+      let value = undefined;
+      let done = false;
+      while ((({ done, value } = iterator.next()), !done)) {
+        const promise = MyPromise.resolve(value);
+        const index = size++;
+        promise.then((result) => {
+          complete++;
+          results[index] = result;
+          if (size === complete) {
+            resolve(results);
+          }
+        }, reject);
+      }
+      if (!size) {
+        resolve(results);
+      }
+    });
+  }
+
+  static race(iterable) {
+    return new MyPromise((resolve, reject) => {
+      for (const item of iterable) {
+        MyPromise.resolve(item).then(resolve, reject);
+      }
+    });
+  }
+
+  static allSettled(iterable) {
+    return new MyPromise((resolve) => {
+      const iterator = iterable[Symbol.iterator]?.();
+      if (!iterator) {
+        reject(
+          TypeError(
+            `${typeof iterable} ${iterable} is not Iterable (cannot read property Symbol(Symbol.iterator))`
+          )
+        );
+      }
+      const results = [];
+      let complete = 0;
+      let size = 0;
+      let value = undefined;
+      let done = false;
+      while ((({ done, value } = iterator.next()), !done)) {
+        const promise = MyPromise.resolve(value);
+        const index = size++;
+        const onFulFilled = (result) => {
+          complete++;
+          results[index] = {
+            status: PROMISE_STATUS.FULFILLED,
+            value: result,
+          };
+          if (size === complete) {
+            resolve(results);
+          }
+        };
+        const onRejected = (reason) => {
+          complete++;
+          results[index] = {
+            status: PROMISE_STATUS.REJECTED,
+            reason: reason,
+          };
+          if (size === complete) {
+            resolve(results);
+          }
+        };
+        promise.then(onFulFilled, onRejected);
+      }
+      if (!size) {
+        resolve(results);
+      }
+    });
+  }
+
+  static any(iterable) {
+    return new MyPromise((resolve, reject) => {
+      const iterator = iterable[Symbol.iterator]?.();
+      if (!iterator) {
+        reject(
+          TypeError(
+            `${typeof iterable} ${iterable} is not Iterable (cannot read property Symbol(Symbol.iterator))`
+          )
+        );
+      }
+      const errors = [];
+      let complete = 0;
+      let size = 0;
+      let value = undefined;
+      let done = false;
+      while ((({ done, value } = iterator.next()), !done)) {
+        const promise = MyPromise.resolve(value);
+        const index = size++;
+        promise.then(resolve, (reason) => {
+          complete++;
+          errors[index] = reason;
+          if (size === complete) {
+            reject(new MyAggregateError(errors, "All promises were rejected"));
+          }
+        });
+      }
+      // 空数组不会进入上述循环
+      if (!size) {
+        reject(new MyAggregateError(errors, "All promises were rejected"));
+      }
+    });
+  }
+
+  static map(iterable) {
+    return new MyPromise((resolve, reject) => {
+      const iterator = iterable[Symbol.iterator]?.();
+      if (!iterator) {
+        reject(
+          TypeError(
+            `${typeof iterable} ${iterable} is not Iterable (cannot read property Symbol(Symbol.iterator))`
+          )
+        );
+      }
+      const results = [];
+      let complete = 0;
+      let size = 0;
+      let value = undefined;
+      let done = false;
+      while ((({ done, value } = iterator.next()), !done)) {
+        const promise = MyPromise.resolve(value);
+        const index = size++;
+        promise.then((result) => {
+          complete++;
+          results[index] = result;
+          if (size === complete) {
+            resolve(results);
+          }
+        }, reject);
+      }
+      if (!size) {
+        resolve(results);
+      }
+    });
+  }
+}
+
+class MyAggregateError extends Error {
+  get name() {
+    return "MyAggregateError";
+  }
+  constructor(errors, message) {
+    super(message);
+    if (!isFunction(errors[Symbol.iterator])) {
+      throw new TypeError(`${typeof errors} ${errors} is not iterable`);
+    }
+    this.errors = errors;
   }
 }
 ```
@@ -274,7 +411,7 @@ function asyncToGenerator(generatorFunc) {
         } catch (error) {
           return reject(error);
         }
-        const {value, done} = generatorResult;
+        const { value, done } = generatorResult;
         if (done) {
           // 如果已经完成了 就直接resolve这个promise
           // 这个done是最后一次调用next后才会为true
@@ -287,17 +424,17 @@ function asyncToGenerator(generatorFunc) {
           // !注意promise.resolve可以接受一个promise为参数
           // 并且这个promise参数被resolve的时候，这个then才会被调用
           return Promise.resolve(value).then(
-              // value 这个promise被resolve的时候，执行next
-              // 只要done不是true的时候，就会递归的往下解开promise。在done为true了，整个promise被resolve了
-              function onResolved(val) {
-                step("next", val);
-              },
-              // 如果promise被reject了，就再次进入step函数
-              // 不同的是，这次的try catch中调用的是gen.throw（err）
-              // 被catch到后，把promise给reject掉
-              function onRejected(err) {
-                step("throw", err);
-              }
+            // value 这个promise被resolve的时候，执行next
+            // 只要done不是true的时候，就会递归的往下解开promise。在done为true了，整个promise被resolve了
+            function onResolved(val) {
+              step("next", val);
+            },
+            // 如果promise被reject了，就再次进入step函数
+            // 不同的是，这次的try catch中调用的是gen.throw（err）
+            // 被catch到后，把promise给reject掉
+            function onRejected(err) {
+              step("throw", err);
+            }
           );
         }
       }
@@ -339,8 +476,7 @@ class LRUCache {
     } else {
       this.keys.push(key);
       this.cache[key] = value;
-      if (this.keys.length > this.capacity)
-        removeCache(this.cache, this.keys, this.keys[0]);
+      if (this.keys.length > this.capacity) removeCache(this.cache, this.keys, this.keys[0]);
     }
   }
 }
@@ -416,8 +552,8 @@ function quickSort(arr, start = 0, end = arr.length - 1) {
 function mergeSort(arr) {
   if (arr.length <= 1) return arr;
   const midIndex = arr.length / 2 || 0,
-      leftArr = arr.slice(0, midIndex),
-      rightArr = arr.slice(midIndex, arr.length);
+    leftArr = arr.slice(0, midIndex),
+    rightArr = arr.slice(midIndex, arr.length);
   return merger(mergeSort(leftArr), mergeSort(rightArr));
 }
 
@@ -450,18 +586,18 @@ function merger(leftArr, rightArr) {
  * @param {boolean} leading 是否立即执行回调函数
  */
 const debounce = (fn, wait = 300, leading = true) => {
-      let timeId, result;
-      return function (...args) {
-        timeId && clearTimeout(timeId);
-        if (leading) {
-          if (!timeId) result = fn.apply(this, args);
-          timeId = setTimeout(() => (timeId = null), wait);
-        } else {
-          timeId = setTimeout(() => (result = fn.apply(this, args)), wait);
-        }
-        return result;
-      };
-    };
+  let timeId, result;
+  return function (...args) {
+    timeId && clearTimeout(timeId);
+    if (leading) {
+      if (!timeId) result = fn.apply(this, args);
+      timeId = setTimeout(() => (timeId = null), wait);
+    } else {
+      timeId = setTimeout(() => (result = fn.apply(this, args)), wait);
+    }
+    return result;
+  };
+};
 ```
 
 ### 函数节流
@@ -489,7 +625,7 @@ const throttle = (fn, wait = 300) => {
 ```js
 const throttle = (fn, wait = 300) => {
   let prev = 0,
-      result;
+    result;
   return function (...args) {
     let now = +new Date();
     if (now - prev > wait) {
@@ -514,27 +650,27 @@ const throttle = (fn, wait = 300) => {
  * @param {boolean} first 开始触发时是否立即执行
  * @param {boolean} last 停止触发时是否继续执行,与first不呢同时设置为false
  **/
-const throttle = (fn, wait = 300, {first = true, last = true} = {}, ...args) => {
-      let timeId,
-          prev = 0;
-      const later = (args) => {
-        timeId && clearTimeout(timeId);
-        timeId = setTimeout(() => {
-          timeId = null;
-          fn.apply(this, args);
-        }, wait);
-      };
-      return function () {
-        let now = Date.now();
-        let remaining = wait - (now - prev);
-        if (!prev && first === false) prev = now;
-        if (!first) return later(args);
-        if (remaining <= 0 || remaining > wait) {
-          fn.apply(this, args);
-          prev = now;
-        } else if (!timeId && last) later(args);
-      };
-    };
+const throttle = (fn, wait = 300, { first = true, last = true } = {}, ...args) => {
+  let timeId,
+    prev = 0;
+  const later = (args) => {
+    timeId && clearTimeout(timeId);
+    timeId = setTimeout(() => {
+      timeId = null;
+      fn.apply(this, args);
+    }, wait);
+  };
+  return function () {
+    let now = Date.now();
+    let remaining = wait - (now - prev);
+    if (!prev && first === false) prev = now;
+    if (!first) return later(args);
+    if (remaining <= 0 || remaining > wait) {
+      fn.apply(this, args);
+      prev = now;
+    } else if (!timeId && last) later(args);
+  };
+};
 ```
 
 ## 事件委托
@@ -542,19 +678,19 @@ const throttle = (fn, wait = 300, {first = true, last = true} = {}, ...args) => 
 ```js
 function delegate(element, eventType, selector, fn) {
   element.addEventListener(
-      eventType,
-      (e) => {
-        let el = e.target;
-        while (!el.matches(selector)) {
-          if (element === el) {
-            el = null;
-            break;
-          }
-          el = el.parentNode;
+    eventType,
+    (e) => {
+      let el = e.target;
+      while (!el.matches(selector)) {
+        if (element === el) {
+          el = null;
+          break;
         }
-        el && fn.call(el, e, el);
-      },
-      true
+        el = el.parentNode;
+      }
+      el && fn.call(el, e, el);
+    },
+    true
   );
   return element;
 }
@@ -564,7 +700,7 @@ function delegate(element, eventType, selector, fn) {
 
 ```js
 var dragging = false,
-    position;
+  position;
 xxx.addEventListener("mousedown", (e) => {
   dragging = true;
   position = [e.clientX, e.clientY];
@@ -733,34 +869,34 @@ interface TreeHelperConfig {
 }
 
 function listToTree<T = any>(
-    list: any[],
-    {id = "id", children = "children", pid = "pid"}: Partial<TreeHelperConfig> = {}
+  list: any[],
+  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
 ): T[] {
-  const nodeMap = listToMap(list, item => [item[id], item], new Map())
+  const nodeMap = listToMap(list, (item) => [item[id], item], new Map());
   const result: T[] = [];
   for (const node of list) {
     const parent = nodeMap.get(node[pid]);
-    (parent ? (parent.children || (parent.children = [])) : result).push(node)
+    (parent ? parent.children || (parent.children = []) : result).push(node);
   }
   return result;
 }
 
 function treeToList<T = any>(
-    tree: any,
-    {id = "id", children = "children", pid = "pid"}: Partial<TreeHelperConfig> = {}
+  tree: any,
+  { id = "id", children = "children", pid = "pid" }: Partial<TreeHelperConfig> = {}
 ): T {
-  const result: any = [...tree]
+  const result: any = [...tree];
   for (let i = 0; i < result.length; i++) {
-    if (!result[i][children!]) continue
-    result.splice(i + 1, 0, ...result[i][children!])
+    if (!result[i][children!]) continue;
+    result.splice(i + 1, 0, ...result[i][children!]);
   }
-  return result
+  return result;
 }
 
 function findNode<T = any>(
-    tree: any,
-    func: Fn,
-    {children}: Partial<TreeHelperConfig> = {},
+  tree: any,
+  func: Fn,
+  { children }: Partial<TreeHelperConfig> = {}
 ): T | null {
   const list = [...tree];
   for (const node of list) {
@@ -770,27 +906,27 @@ function findNode<T = any>(
   return null;
 }
 
-type ListToMapGetKeyValue = (item: T, index: number, items: T[]) => { key: string | symbol, value: T | R }
+type ListToMapGetKeyValue = (
+  item: T,
+  index: number,
+  items: T[]
+) => { key: string | symbol; value: T | R };
 
-function listToMap<T = any,
-    K = any,
-    V = any,
-    R = Map<K, T | V> | { [K]: T | V } | any>(
-    list: T[],
-    getKeyAndValue: K | ((acc: R, item: T, index: number, items: T[]) => [K, V]) = 'id',
-    map: R = {}
+function listToMap<T = any, K = any, V = any, R = Map<K, T | V> | { [K]: T | V } | any>(
+  list: T[],
+  getKeyAndValue: K | ((acc: R, item: T, index: number, items: T[]) => [K, V]) = "id",
+  map: R = {}
 ): R {
   return list.reduce((acc, cur, curIndex, arr) => {
     const keyValue = isFunction(getKeyAndValue)
-        ? getKeyAndValue(acc, cur, curIndex, arr)
-        : [Reflect.get(cur, getKeyAndValue), cur]
-    if (!keyValue) return acc
-    const [key, value] = keyValue
-    Reflect.set(acc, key, value)
-    return acc
-  }, map)
+      ? getKeyAndValue(acc, cur, curIndex, arr)
+      : [Reflect.get(cur, getKeyAndValue), cur];
+    if (!keyValue) return acc;
+    const [key, value] = keyValue;
+    Reflect.set(acc, key, value);
+    return acc;
+  }, map);
 }
-
 ```
 
 ## promise-helper
@@ -807,15 +943,15 @@ p-map 适用于使用不同的输入多次运行 promise-returning 或 async 函
 const pMapSkip = Symbol("skip");
 
 async function pMap<T = Promise | any, R = any>(
-    iterable: Iterable<T>,
-    mapper: (item, index) => R,
-    {
-      concurrency = Number.POSITIVE_INFINITY,
-      stopOnError = true,
-    }: {
-      concurrency?: number; //—— 并发数，默认值 Infinity，最小值为 1；
-      stopOnError?: boolean; //出现异常时，是否终止，默认值为 true。
-    } = {}
+  iterable: Iterable<T>,
+  mapper: (item, index) => R,
+  {
+    concurrency = Number.POSITIVE_INFINITY,
+    stopOnError = true,
+  }: {
+    concurrency?: number; //—— 并发数，默认值 Infinity，最小值为 1；
+    stopOnError?: boolean; //出现异常时，是否终止，默认值为 true。
+  } = {}
 ): Promise<R> {
   return new Promise((resolve, reject) => {
     const result = [];
@@ -887,11 +1023,11 @@ async function pMap<T = Promise | any, R = any>(
 
 ```ts
 const inputs = [200, 100, pMapSkip];
-const mapper = (value) => delay(value, {value});
+const mapper = (value) => delay(value, { value });
 
 async function main() {
   console.time("start");
-  const result = await pMap(inputs, mapper, {concurrency: 1});
+  const result = await pMap(inputs, mapper, { concurrency: 1 });
   console.dir(result); // 输出结果：[ 200, 100 ]
   console.timeEnd("start"); //start: 368.708ms
 }
@@ -914,16 +1050,16 @@ start: 210.322ms
 
 ```ts
 async function pAll(
-    iterable,
-    {runInFunction = true, concurrency = Number.POSITIVE_INFINITY, stopOnError = true} = {}
+  iterable,
+  { runInFunction = true, concurrency = Number.POSITIVE_INFINITY, stopOnError = true } = {}
 ) {
   return pMap(
-      iterable,
-      (element) => {
-        if (!runInFunction) return element;
-        return isFunction(element) ? element() : element;
-      },
-      {concurrency, stopOnError}
+    iterable,
+    (element) => {
+      if (!runInFunction) return element;
+      return isFunction(element) ? element() : element;
+    },
+    { concurrency, stopOnError }
   );
 }
 ```
@@ -932,7 +1068,7 @@ async function pAll(
 
 ```ts
 const inputs = [
-  () => delay(200, {value: 1}),
+  () => delay(200, { value: 1 }),
   async () => {
     await delay(100);
     return 2;
@@ -942,7 +1078,7 @@ const inputs = [
 
 async function main() {
   console.time("start");
-  const result = await pAll(inputs, {concurrency: 1});
+  const result = await pAll(inputs, { concurrency: 1 });
   console.dir(result); // 输出结果：[ 1, 2, 8 ]
   console.timeEnd("start");
 }
@@ -955,55 +1091,57 @@ main();
 try-catch 包裹器(异步)
 
 ```ts
-import $loading from 'loading'
+import $loading from "loading";
 
 function to(
-    promise: Promise,
-    {
-      notifyError = true,
-      errorExt = {},
-      notifyOptions = {},
-      initialValue = undefined,
-      loading = false,
-    }?: {
-      notifyError?: boolean | string;
-      notifyOptions?: any;
-      errorExt?: any;
-      initialValue?: any;
-      loading?: boolean;
-    } = {}
+  promise: Promise,
+  {
+    notifyError = true,
+    errorExt = {},
+    notifyOptions = {},
+    initialValue = undefined,
+    loading = false,
+  }?: {
+    notifyError?: boolean | string;
+    notifyOptions?: any;
+    errorExt?: any;
+    initialValue?: any;
+    loading?: boolean;
+  } = {}
 ): Promise<[Error, any]> {
   loading && $loading.show();
   return promise
-      .then((data) => [null, data])
-      .catch((err) => {
-        if (errorExt) Object.assign(err, errorExt);
-        if (notifyError) {
-          notifyErrorByHttpCode(isString(notifyError) ? notifyError : err, notifyOptions);
-          console.warn(err);
-        }
-        return [err, initialValue];
-      })
-      .finally(() => {
-        loading && $loading.hide();
-      });
+    .then((data) => [null, data])
+    .catch((err) => {
+      if (errorExt) Object.assign(err, errorExt);
+      if (notifyError) {
+        notifyErrorByHttpCode(isString(notifyError) ? notifyError : err, notifyOptions);
+        console.warn(err);
+      }
+      return [err, initialValue];
+    })
+    .finally(() => {
+      loading && $loading.hide();
+    });
 }
 ```
 
 #### 用法
 
 ```ts
-const [err, {data}] = await awaitTo(request.get(``));
+const [err, { data }] = await awaitTo(request.get(``));
 ```
 
 ### cached
+
 函数返回值缓存是优化一个函数的常用手段。(同步, 异步皆可)
 我们可以将函数、输入参数、返回值全部保存起来，当下次以同样的参数调用这个函数时，直接使用存储的结果作为返回(不需要重新计算)。
 
 这种方法是有代价的，我们实际是在用内存空间换取运行时间。此方法中使用了 LRUCache(Least Recently Used, 最近最少使用)来优化存储空间
 
->注意: 如果是请求, 请谨慎使用, 如果前端的数据和后端数据不一致,请求还一直拿缓存的值就玩大发了
->例如像类目列表, 品牌列表等很久才会更新, 请求频率高且数据量大的才考虑用(ps: 整个协商缓存多好, 还得前端在这想办法)
+> 注意: 如果是请求, 请谨慎使用, 如果前端的数据和后端数据不一致,请求还一直拿缓存的值就玩大发了
+> 例如像类目列表, 品牌列表等很久才会更新, 请求频率高且数据量大的才考虑用(ps: 整个协商缓存多好, 还得前端在这想办法)
+
 ```ts
 const generateKey = (arg) => {
   if (isString(arg)) return arg;
@@ -1022,7 +1160,7 @@ const generateKey = (arg) => {
 
 export function cached<T>(func: T, capacity: number = 100): T {
   const cache = new LRUCache(capacity);
-  return async function(...args) {
+  return async function (...args) {
     const key = generateKey(args);
     const target = cache.get(key);
     if (target) {
@@ -1045,6 +1183,7 @@ const cacheGetData = cached(getData);
 cacheGetData();
 //cacheGetData 与 detData 行为一致
 ```
+
 ## 参考
 
 - [underscore 函数节流的实现](https://github.com/lessfish/underscore-analysis/issues/22)
