@@ -5,9 +5,9 @@
   "author": "kory <kory.lee@qq.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "vuepress dev .",
-    "build": "vuepress build .",
-    "build:gh-pages": "cross-env GH_PAGES=true vuepress build .",
+    "dev": "export NODE_OPTIONS=--openssl-legacy-provider && vuepress dev .",
+    "build": "export NODE_OPTIONS=--openssl-legacy-provider && vuepress build .",
+    "build:gh-pages": "export NODE_OPTIONS=--openssl-legacy-provider && cross-env GH_PAGES=true vuepress build .",
     "clean:lib": "npx rimraf node_modules",
     "reinstall": "yarn clean:lib && yarn",
     "update": "yarn upgrade-interactive --latest"
