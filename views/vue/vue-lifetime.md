@@ -1,5 +1,5 @@
 ---
-title: Vue生命周期
+title: Vue2.x生命周期
 date: 2020-06-17
 tags:
   - JavaScript

@@ -36,7 +36,7 @@ module.exports = {
     sidebar: {
       "/views/http/": ["http-base", "http-cross-domain", "front-end-security"],
       "/views/dom/": ["intersection-observer", "resize-observer"],
-      "/views/vue/": ["vue3-reactive"],
+      "/views/vue/": ["vue-lifetime", "vue3-reactive"],
     },
     type: "blog",
     // 博客设置
